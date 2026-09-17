@@ -1,0 +1,101 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "users": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || auth.token.role === 'SYSTEM_ADMIN' || auth.token.role === 'AUTHORITY_DISPATCHER')",
+        ".write": "auth != null && (auth.uid === $uid || auth.token.role === 'SYSTEM_ADMIN')",
+        "role": {
+          ".validate": "newData.isString() && (newData.val() === 'CITIZEN_MEMBER' || newData.val() === 'VERIFIED_COMMUNITY_LEADER' || newData.val() === 'AUTHORITY_DISPATCHER' || newData.val() === 'SYSTEM_ADMIN')"
+        }
+      }
+    },
+
+    "userPrivateProfiles": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || auth.token.role === 'SYSTEM_ADMIN')",
+        ".write": "auth != null && (auth.uid === $uid || auth.token.role === 'SYSTEM_ADMIN')"
+      }
+    },
+
+    "communities": {
+      ".read": "auth != null",
+      "$communityId": {
+        ".write": "auth != null && (auth.token.role === 'VERIFIED_COMMUNITY_LEADER' || auth.token.role === 'SYSTEM_ADMIN')"
+      }
+    },
+
+    "incidents": {
+      ".read": "auth != null",
+      "$incidentId": {
+        ".write": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && (!data.exists() || auth.token.role === 'VERIFIED_COMMUNITY_LEADER' || auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'SYSTEM_ADMIN')",
+        ".validate": "newData.hasChildren(['communityId', 'category', 'title', 'description', 'reporterLabel', 'blurredLocation', 'encryptedPreciseLocation', 'severity', 'status'])",
+        "reporterLabel": {
+          ".validate": "newData.val() === 'Reported by a verified community member'"
+        },
+        "status": {
+          ".validate": "newData.val() === 'SUBMITTED' || newData.val() === 'VERIFIED' || newData.val() === 'ESCALATED' || newData.val() === 'RESOLVED' || newData.val() === 'DISMISSED'"
+        },
+        "severity": {
+          ".validate": "newData.val() === 'LOW' || newData.val() === 'MEDIUM' || newData.val() === 'HIGH' || newData.val() === 'CRITICAL'"
+        },
+        "category": {
+          ".validate": "newData.val() === 'TRAFFIC_HAZARD' || newData.val() === 'INFRASTRUCTURE_FAILURE' || newData.val() === 'DISTURBANCE' || newData.val() === 'CROWD_SAFETY_ALERT' || newData.val() === 'EMERGENCY_OTHER'"
+        }
+      }
+    },
+
+    "incidentReportersPrivate": {
+      "$incidentId": {
+        ".read": "auth != null && (auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'SYSTEM_ADMIN')",
+        ".write": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && (!data.exists() && newData.child('reporterUid').val() === auth.uid || auth.token.role === 'SYSTEM_ADMIN')"
+      }
+    },
+
+    "incidentEvidence": {
+      "$incidentId": {
+        ".read": "auth != null",
+        "$mediaId": {
+          ".write": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous'"
+        }
+      }
+    },
+
+    "activeResponseCoordination": {
+      "$incidentId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'VERIFIED_COMMUNITY_LEADER' || auth.token.role === 'SYSTEM_ADMIN')"
+      }
+    },
+
+    "communityAlerts": {
+      "$communityId": {
+        ".read": "auth != null",
+        "$alertId": {
+          ".write": "auth != null && (auth.token.role === 'VERIFIED_COMMUNITY_LEADER' || auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'SYSTEM_ADMIN')"
+        }
+      }
+    },
+
+    "authorityEscalations": {
+      "$incidentId": {
+        ".read": "auth != null && (auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'SYSTEM_ADMIN')",
+        ".write": "auth != null && (auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'SYSTEM_ADMIN')"
+      }
+    },
+
+    "escalationAuditLogs": {
+      ".read": "auth != null && (auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'SYSTEM_ADMIN')",
+      ".write": false
+    },
+
+    "userFCMTokens": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    }
+  }
+}
