@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface DialogProps {
   isOpen: boolean;
@@ -40,14 +41,17 @@ export const Dialog: React.FC<DialogProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in-0 duration-200">
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? 'dialog-title' : undefined}
         aria-describedby={description ? 'dialog-desc' : undefined}
-        className={`w-full ${maxWidthStyles[maxWidth]} bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 relative flex flex-col gap-4 max-h-[90vh] overflow-y-auto`}
+        className={cn(
+          'w-full bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 relative flex flex-col gap-4 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200',
+          maxWidthStyles[maxWidth]
+        )}
       >
         <div className="flex items-start justify-between gap-4">
           <div>

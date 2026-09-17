@@ -1,5 +1,6 @@
 import React, { HTMLAttributes } from 'react';
 import { ShieldAlert, AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface AlertProps extends HTMLAttributes<HTMLDivElement> {
   type?: 'info' | 'success' | 'warning' | 'danger' | 'safety';
@@ -12,7 +13,7 @@ export const Alert: React.FC<AlertProps> = ({
   type = 'info',
   title,
   onDismiss,
-  className = '',
+  className,
   ...props
 }) => {
   const styles = {
@@ -43,7 +44,11 @@ export const Alert: React.FC<AlertProps> = ({
   return (
     <div
       role="alert"
-      className={`flex items-start gap-3 p-4 rounded-xl border text-sm transition-all ${selected.bg} ${className}`}
+      className={cn(
+        'relative w-full rounded-xl border p-4 text-sm transition-all flex items-start gap-3',
+        selected.bg,
+        className
+      )}
       {...props}
     >
       {selected.icon}

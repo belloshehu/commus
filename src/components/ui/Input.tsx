@@ -1,4 +1,5 @@
 import React, { InputHTMLAttributes, forwardRef, useId } from 'react';
+import { cn } from '@/lib/utils';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -12,7 +13,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
   helperText,
   error,
   icon,
-  className = '',
+  className,
   id: customId,
   ...props
 }, ref) => {
@@ -39,11 +40,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
           id={inputId}
           aria-invalid={!!error}
           aria-describedby={error ? errorId : helperText ? helperId : undefined}
-          className={`w-full bg-slate-900 border text-slate-100 text-sm rounded-lg px-3.5 py-2.5 transition-colors placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed ${
-            icon ? 'pl-10' : ''
-          } ${
-            error ? 'border-red-500 focus:ring-red-400' : 'border-slate-700 hover:border-slate-600 focus:border-sky-500'
-          } ${className}`}
+          className={cn(
+            'flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 ring-offset-slate-900 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+            icon && 'pl-10',
+            error && 'border-red-500 focus-visible:ring-red-400',
+            className
+          )}
           {...props}
         />
       </div>

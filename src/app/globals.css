@@ -2,38 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #0b1120;
-  --foreground: #f8fafc;
-  --surface: #141e33;
-  --surface-border: #1e293b;
-  --surface-hover: #1e2d4a;
-  
-  --primary: #0284c7;
-  --primary-hover: #0369a1;
-  --primary-light: #38bdf8;
-  
-  --danger-high-bg: #450a0a;
-  --danger-high-border: #991b1b;
-  --danger-high-text: #fca5a5;
-  --danger-high-badge: #dc2626;
+@layer base {
+  :root {
+    --background: 222 47% 8%;
+    --foreground: 210 40% 98%;
 
-  --danger-medium-bg: #451a03;
-  --danger-medium-border: #7c2d12;
-  --danger-medium-text: #fdba74;
-  --danger-medium-badge: #d97706;
+    --card: 222 44% 14%;
+    --card-foreground: 210 40% 98%;
 
-  --danger-low-bg: #0c4a6e;
-  --danger-low-border: #075985;
-  --danger-low-text: #7dd3fc;
-  --danger-low-badge: #0284c7;
+    --popover: 222 44% 14%;
+    --popover-foreground: 210 40% 98%;
 
-  --verified-bg: #064e3b;
-  --verified-border: #065f46;
-  --verified-text: #a7f3d0;
-  --verified-badge: #059669;
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
 
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 20%;
+    --input: 217 33% 20%;
+    --ring: 199 89% 48%;
+
+    --radius: 0.75rem;
+
+    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
 }
 
 * {
@@ -43,8 +45,8 @@
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
+  background-color: #0b1120;
+  color: #f8fafc;
   font-family: var(--font-sans);
   min-height: 100vh;
   line-height: 1.6;
@@ -53,7 +55,7 @@ body {
 
 /* Accessibility Focus States */
 :focus-visible {
-  outline: 2px solid var(--primary-light);
+  outline: 2px solid #38bdf8;
   outline-offset: 2px;
 }
 
@@ -72,13 +74,13 @@ body {
 .glass-panel {
   background: rgba(20, 30, 51, 0.85);
   backdrop-filter: blur(12px);
-  border: 1px solid var(--surface-border);
+  border: 1px solid #1e293b;
 }
 
 .glass-panel-danger {
   background: rgba(69, 10, 10, 0.85);
   backdrop-filter: blur(12px);
-  border: 1px solid var(--danger-high-border);
+  border: 1px solid #991b1b;
 }
 
 /* Custom Scrollbars */
