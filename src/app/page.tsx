@@ -59,17 +59,32 @@ const mockIncidents: IncidentCardData[] = [
   },
 ];
 
+import { IncidentFilterBar, FilterState } from '@/components/dashboard/IncidentFilterBar';
+import { IncidentFeed, filterIncidents } from '@/components/dashboard/IncidentFeed';
+import { useRouter } from 'next/navigation';
+
+const mockCommunities = [
+  { id: 'comm_central', name: 'Downtown Central District', isPrivate: true },
+  { id: 'comm_north', name: 'North Metro Transit Corridor', isPrivate: false },
+  { id: 'comm_west', name: 'Westside Community Safety Zone', isPrivate: true },
+];
+
 export default function HomePage() {
+  const router = useRouter();
   const [locale, setLocale] = useState<'en' | 'ar'>('en');
   const [activeTab, setActiveTab] = useState('incidents');
   const [selectedEscalateId, setSelectedEscalateId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [filterQuery, setFilterQuery] = useState('');
 
-  const filteredIncidents = mockIncidents.filter((inc) =>
-    inc.title.toLowerCase().includes(filterQuery.toLowerCase()) ||
-    inc.description.toLowerCase().includes(filterQuery.toLowerCase())
-  );
+  const [filters, setFilters] = useState<FilterState>({
+    searchQuery: '',
+    dangerLevel: 'ALL',
+    communityId: 'comm_central',
+    timeFilter: 'ALL',
+    statusFilter: 'ALL',
+  });
+
+  const filteredIncidents = filterIncidents(mockIncidents, filters);
 
   return (
     <AppShell
@@ -118,34 +133,19 @@ export default function HomePage() {
         {/* Tab Content 1: Incident Feed */}
         {activeTab === 'incidents' && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-900/60 p-4 border border-slate-800 rounded-xl">
-              <div className="w-full sm:w-72">
-                <Input
-                  placeholder="Filter incident reports..."
-                  value={filterQuery}
-                  onChange={(e) => setFilterQuery(e.target.value)}
-                  icon={<Search className="w-4 h-4" />}
-                />
-              </div>
+            <IncidentFilterBar
+              filters={filters}
+              onFilterChange={setFilters}
+              availableCommunities={mockCommunities}
+              totalResultsCount={filteredIncidents.length}
+            />
 
-              <div className="flex items-center gap-2 text-xs text-slate-400">
-                <span>Showing <strong className="text-slate-100">{filteredIncidents.length}</strong> active incidents</span>
-              </div>
-            </div>
-
-            {filteredIncidents.length === 0 ? (
-              <EmptyState title="No matching incidents found" description="Try adjusting your filter search query." />
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {filteredIncidents.map((incident) => (
-                  <IncidentCard
-                    key={incident.id}
-                    incident={incident}
-                    onEscalate={(id) => setSelectedEscalateId(id)}
-                  />
-                ))}
-              </div>
-            )}
+            <IncidentFeed
+              incidents={mockIncidents}
+              filters={filters}
+              onViewDetails={(id) => router.push(`/incidents/${id}`)}
+              onEscalate={(id) => setSelectedEscalateId(id)}
+            />
           </div>
         )}
 

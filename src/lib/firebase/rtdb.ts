@@ -11,7 +11,7 @@ import {
   get
 } from 'firebase/database';
 import { rtdb } from './client';
-import { UserSession, canSubmitIncident } from '../auth';
+import { UserSession, canSubmitIncident, canViewPrivateCommunityIncidents } from '../auth';
 
 export type IncidentCategory = 
   | 'TRAFFIC_HAZARD'
@@ -173,6 +173,63 @@ export function subscribeToCommunityIncidents(
 }
 
 /**
+ * RTDB One-shot fetch for a single incident with backend authorization check.
+ */
+export async function getIncidentById(
+  session: UserSession,
+  incidentId: string
+): Promise<IncidentRecord | null> {
+  const incidentRef = ref(rtdb, `incidents/${incidentId}`);
+  const snapshot = await get(incidentRef);
+
+  if (!snapshot.exists()) {
+    return null;
+  }
+
+  const data = snapshot.val() as IncidentRecord;
+  const incident: IncidentRecord = { ...data, id: incidentId };
+
+  // Authorization check at the data layer
+  if (!canViewPrivateCommunityIncidents(session, incident.communityId)) {
+    throw new Error('UNAUTHORIZED: You do not have permission to view incidents from this community zone.');
+  }
+
+  // Mandatory privacy label enforcement
+  incident.reporterLabel = 'Reported by a verified community member';
+  return incident;
+}
+
+/**
+ * RTDB One-shot fetch for all incidents in a community with authorization check.
+ */
+export async function getCommunityIncidents(
+  session: UserSession,
+  communityId: string
+): Promise<IncidentRecord[]> {
+  if (!canViewPrivateCommunityIncidents(session, communityId)) {
+    throw new Error('UNAUTHORIZED: You do not have permission to access incidents from this community zone.');
+  }
+
+  const incidentsQuery = query(
+    ref(rtdb, 'incidents'),
+    orderByChild('communityId'),
+    equalTo(communityId)
+  );
+
+  const snapshot = await get(incidentsQuery);
+  if (!snapshot.exists()) {
+    return [];
+  }
+
+  const data = snapshot.val();
+  return Object.keys(data).map((key) => ({
+    ...data[key],
+    id: key,
+    reporterLabel: 'Reported by a verified community member',
+  }));
+}
+
+/**
  * RTDB Real-time subscription for a single incident's status and details.
  */
 export function subscribeToIncident(
@@ -187,7 +244,11 @@ export function subscribeToIncident(
       callback(null);
       return;
     }
-    callback({ ...data, id: incidentId });
+    callback({
+      ...data,
+      id: incidentId,
+      reporterLabel: 'Reported by a verified community member',
+    });
   });
 }
 
