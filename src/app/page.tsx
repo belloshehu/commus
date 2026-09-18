@@ -8,6 +8,8 @@ import { DangerLevelIndicator } from '@/components/ui/DangerLevelIndicator';
 import { Alert } from '@/components/ui/Alert';
 import { EvidencePreview } from '@/components/ui/EvidencePreview';
 import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
+import { Drawer } from '@/components/ui/Drawer';
+import { IncidentReportWizard } from '@/components/incident/IncidentReportWizard';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { TextArea } from '@/components/ui/TextArea';
@@ -272,15 +274,21 @@ export default function HomePage() {
           confirmLabel="Escalate Now"
         />
 
-        {/* Modal: Submit Incident Form */}
-        <ConfirmationDialog
+        {/* Drawer: Submit Incident Reporting Wizard */}
+        <Drawer
           isOpen={isSubmitting}
           onClose={() => setIsSubmitting(false)}
-          onConfirm={() => setIsSubmitting(false)}
           title="Submit Community Safety Report"
-          message="Ensure your report is accurate. Your identity is protected by a pseudonym."
-          confirmLabel="Submit Report"
-        />
+        >
+          <div className="py-2">
+            <IncidentReportWizard
+              onCompleted={() => {
+                setIsSubmitting(false);
+              }}
+              onCancel={() => setIsSubmitting(false)}
+            />
+          </div>
+        </Drawer>
       </div>
     </AppShell>
   );

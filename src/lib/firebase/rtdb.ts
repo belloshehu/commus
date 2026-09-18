@@ -37,17 +37,41 @@ export interface RiskAssessment {
   aiSummary: string;
 }
 
+export interface EvidenceItem {
+  id: string;
+  url: string;
+  type: 'image' | 'video' | 'audio';
+  name: string;
+  size: number;
+  uploadedAt: number;
+}
+
+export interface IncidentLocationData {
+  address?: string;
+  landmark?: string;
+  latitude: number;
+  longitude: number;
+  isFuzzed: boolean;
+}
+
 export interface IncidentRecord {
   id?: string;
   communityId: string;
   category: IncidentCategory;
   title: string;
   description: string;
+  voiceNoteUrl?: string;
   reporterLabel: string;
   blurredLocation: BlurredLocation;
   encryptedPreciseLocation: string;
+  incidentLocation?: IncidentLocationData;
   severity: IncidentSeverity;
+  dangerLevel?: 'LOW' | 'MEDIUM' | 'HIGH';
+  evidence?: EvidenceItem[];
+  safetyConfirmed?: boolean;
   status: IncidentStatus;
+  authorityNotificationStatus?: 'PENDING' | 'NOTIFIED' | 'FAILED' | 'SKIPPED';
+  moderationStatus?: 'UNREVIEWED' | 'APPROVED' | 'FLAGGED' | 'REJECTED';
   riskAssessment?: RiskAssessment;
   createdAt: number;
   updatedAt: number;
@@ -100,12 +124,16 @@ export async function createIncidentReport(
     id: incidentId,
     reporterLabel: 'Reported by a verified community member',
     status: 'SUBMITTED',
+    dangerLevel: payload.dangerLevel || (payload.severity as any) || 'MEDIUM',
+    authorityNotificationStatus: payload.authorityNotificationStatus || 'PENDING',
+    moderationStatus: payload.moderationStatus || 'UNREVIEWED',
     createdAt: now,
     updatedAt: now,
   };
 
-  // Write public incident record
-  await set(ref(rtdb, `incidents/${incidentId}`), publicIncidentData);
+  // Write public incident record (strip undefined values for Firebase RTDB compatibility)
+  const sanitizedPublicData = JSON.parse(JSON.stringify(publicIncidentData));
+  await set(ref(rtdb, `incidents/${incidentId}`), sanitizedPublicData);
 
   // Write isolated private reporter identity
   await set(ref(rtdb, `incidentReportersPrivate/${incidentId}`), {
