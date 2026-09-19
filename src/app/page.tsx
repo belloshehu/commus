@@ -18,6 +18,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { AuthorityDirectory } from '@/components/authority/AuthorityDirectory';
 import { AlertTriangle, Plus, Search, ShieldCheck } from 'lucide-react';
 
 const mockIncidents: IncidentCardData[] = [
@@ -240,24 +241,25 @@ export default function HomePage() {
         {/* Tab Content 5: Authority Dispatch Portal */}
         {activeTab === 'dispatch' && (
           <div className="space-y-6">
+            <AuthorityDirectory
+              incidents={mockIncidents as any}
+              userSession={{
+                userId: 'user_local_dispatcher',
+                role: 'AUTHORITY_DISPATCHER',
+                isAuthenticated: true,
+              }}
+            />
+
             <Card variant="danger">
               <CardHeader>
-                <CardTitle>Emergency Authority Dispatch Gateway</CardTitle>
+                <CardTitle>Emergency Authority Dispatch Audit Log</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-xs">
                 <p className="text-red-200">
                   Dispatcher Portal: Decrypting precise coordinates requires authorized <code className="text-white">AUTHORITY_DISPATCHER</code> credentials and creates an immutable SHA-256 audit record.
                 </p>
-                <div className="flex gap-3">
-                  <Button variant="danger" size="sm" icon={<AlertTriangle className="w-4 h-4" />}>
-                    Trigger Emergency Dispatch
-                  </Button>
-                </div>
               </CardContent>
             </Card>
-
-            <LoadingState label="Polling live authority status..." count={1} />
-            <ErrorState title="Mock Authority Disconnected" message="Running in synthetic test mode." />
           </div>
         )}
 
