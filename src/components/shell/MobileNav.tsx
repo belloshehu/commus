@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Map, Bell, Shield, Radio } from 'lucide-react';
+import { Activity, Map, Bell, Shield, Radio, Building2 } from 'lucide-react';
 
 export interface MobileNavProps {
   activeTab: string;
@@ -12,6 +12,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
 }) => {
   const items = [
     { id: 'incidents', label: 'Feed', icon: <Activity className="w-5 h-5" /> },
+    { id: 'communities', label: 'Join', icon: <Building2 className="w-5 h-5" /> },
     { id: 'map', label: 'Map', icon: <Map className="w-5 h-5" /> },
     { id: 'alerts', label: 'Alerts', icon: <Bell className="w-5 h-5" /> },
     { id: 'guidance', label: 'Safety', icon: <Shield className="w-5 h-5" /> },

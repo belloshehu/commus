@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Map, Bell, Shield, Radio, ChevronRight } from 'lucide-react';
+import { Activity, Map, Bell, Shield, Radio, ChevronRight, Building2 } from 'lucide-react';
 
 export interface NavItem {
   id: string;
@@ -25,6 +25,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: <Activity className="w-4 h-4" />,
       badge: 'Live',
       badgeColor: 'bg-emerald-950 text-emerald-300 border-emerald-800',
+    },
+    {
+      id: 'communities',
+      label: 'Join Community',
+      icon: <Building2 className="w-4 h-4" />,
+      badge: '1-Click',
+      badgeColor: 'bg-sky-950 text-sky-300 border-sky-800',
     },
     {
       id: 'map',

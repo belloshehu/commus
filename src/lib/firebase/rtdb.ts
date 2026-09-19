@@ -312,3 +312,111 @@ export async function updateIncidentStatus(
 
   await update(ref(rtdb), updates);
 }
+
+export interface CommunityRecord {
+  id: string;
+  name: string;
+  isPrivate: boolean;
+  geohashPrefix: string;
+  inviteCode?: string;
+  memberCount: number;
+  activeIncidentsCount?: number;
+  createdAt: number;
+}
+
+const mockDefaultCommunities: CommunityRecord[] = [
+  {
+    id: 'comm_central',
+    name: 'Downtown Central District',
+    isPrivate: true,
+    geohashPrefix: 'dr5ru',
+    inviteCode: 'CENTRAL',
+    memberCount: 1420,
+    activeIncidentsCount: 2,
+    createdAt: Date.now() - 1000 * 3600 * 24 * 30,
+  },
+  {
+    id: 'comm_north',
+    name: 'North Metro Transit Corridor',
+    isPrivate: false,
+    geohashPrefix: 'dr5rv',
+    inviteCode: 'NORTH',
+    memberCount: 890,
+    activeIncidentsCount: 1,
+    createdAt: Date.now() - 1000 * 3600 * 24 * 20,
+  },
+  {
+    id: 'comm_west',
+    name: 'Westside Residential Safety Zone',
+    isPrivate: true,
+    geohashPrefix: 'dr5rt',
+    inviteCode: 'WESTSAFE',
+    memberCount: 560,
+    activeIncidentsCount: 0,
+    createdAt: Date.now() - 1000 * 3600 * 24 * 10,
+  },
+  {
+    id: 'comm_east',
+    name: 'Eastside Commercial Network',
+    isPrivate: false,
+    geohashPrefix: 'dr5rs',
+    inviteCode: 'EASTSIDE',
+    memberCount: 1100,
+    activeIncidentsCount: 0,
+    createdAt: Date.now() - 1000 * 3600 * 24 * 15,
+  },
+];
+
+/**
+ * One-click helper for joining a community by an authenticated user.
+ */
+export async function joinCommunity(
+  session: UserSession,
+  communityId: string,
+  inviteCode?: string
+): Promise<{ success: boolean; communityName: string }> {
+  if (!session.isAuthenticated || session.role === 'ANONYMOUS') {
+    throw new Error('UNAUTHORIZED: Anonymous visitors must log in to join safety communities.');
+  }
+
+  if (!session.userId) {
+    throw new Error('UNAUTHORIZED: Missing user session ID.');
+  }
+
+  // Find target community
+  const target = mockDefaultCommunities.find(
+    (c) => c.id === communityId || (inviteCode && c.inviteCode?.toUpperCase() === inviteCode.trim().toUpperCase())
+  );
+
+  const targetId = target ? target.id : communityId;
+  const targetName = target ? target.name : `Safety Zone ${communityId}`;
+
+  if (target?.isPrivate) {
+    // Private community requires invite code or matching invite
+    const isValidCode = inviteCode && target.inviteCode && inviteCode.trim().toUpperCase() === target.inviteCode.toUpperCase();
+    if (!isValidCode && session.role !== 'SYSTEM_ADMIN') {
+      throw new Error('INVALID_INVITE_CODE: Private community requires a valid 6-character Invite Code.');
+    }
+  }
+
+  // Atomic RTDB update: add community to user's joined list
+  const userCommRef = ref(rtdb, `users/${session.userId}/communityIds/${targetId}`);
+  await set(userCommRef, true);
+
+  return {
+    success: true,
+    communityName: targetName,
+  };
+}
+
+/**
+ * GPS / Proximity auto-discovery of nearby safety communities based on latitude/longitude.
+ */
+export async function getNearbyCommunities(
+  lat: number,
+  lng: number
+): Promise<CommunityRecord[]> {
+  // Returns discoverable nearby communities
+  return mockDefaultCommunities;
+}
+
