@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UserSession } from '../src/lib/auth';
+import { signSessionToken } from '../src/lib/security';
 import { resolveAuthorityDestination } from '../src/lib/authority/resolver';
 import { MockAuthorityProvider } from '../src/lib/authority/providers/mockProvider';
 import { AuthorityPayload, AuthorityDestination } from '../src/lib/authority/types';
@@ -182,8 +183,12 @@ describe('Antijj Authority Notification Architecture & Escalation Workflow', () 
       const service = AuthorityNotificationService.getInstance(new MockAuthorityProvider());
       await service.escalateIncidentToAuthority(leaderSession, 'inc_test_100');
 
+      const token = signSessionToken(dispatcherSession);
       const req = new NextRequest(
-        'http://localhost:3000/api/authority/escalate?incidentId=inc_test_100&role=AUTHORITY_DISPATCHER&isAuthenticated=true&userId=user_disp'
+        'http://localhost:3000/api/authority/escalate?incidentId=inc_test_100',
+        {
+          headers: { authorization: `Bearer ${token}` },
+        }
       );
       const res = await escalateGET(req);
       expect(res.status).toBe(200);

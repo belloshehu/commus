@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { UserSession } from '@/lib/auth';
 import { joinCommunity } from '@/lib/firebase/rtdb';
+import { authenticateServerSession } from '@/lib/security';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { session, communityId, inviteCode } = body;
+    const session = authenticateServerSession(req);
 
-    const userSession: UserSession = session || { role: 'ANONYMOUS', isAuthenticated: false };
-
-    if (!userSession.isAuthenticated || userSession.role === 'ANONYMOUS') {
+    if (!session.isAuthenticated || session.role === 'ANONYMOUS') {
       return NextResponse.json(
         {
           error: 'UNAUTHORIZED',
@@ -18,6 +15,9 @@ export async function POST(req: NextRequest) {
         { status: 401 }
       );
     }
+
+    const body = await req.json();
+    const { communityId, inviteCode } = body;
 
     if (!communityId && !inviteCode) {
       return NextResponse.json(
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = await joinCommunity(userSession, communityId || '', inviteCode);
+    const result = await joinCommunity(session, communityId || '', inviteCode);
 
     return NextResponse.json({
       success: true,

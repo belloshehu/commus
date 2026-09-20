@@ -1,20 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { UserSession } from '@/lib/auth';
 import { AuthorityNotificationService } from '@/lib/authority/service';
+import { authenticateServerSession, checkRateLimit, sanitizeHtmlText } from '@/lib/security';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { session, incidentId, reason } = body;
+    const session = authenticateServerSession(req, [
+      'VERIFIED_COMMUNITY_LEADER',
+      'AUTHORITY_DISPATCHER',
+      'SYSTEM_ADMIN',
+    ]);
 
-    const userSession: UserSession = session || { role: 'ANONYMOUS', isAuthenticated: false };
-
-    if (!userSession.isAuthenticated) {
-      return NextResponse.json(
-        { error: 'UNAUTHORIZED', message: 'Authentication required for emergency authority escalations.' },
-        { status: 401 }
-      );
+    const ip = req.headers.get('x-forwarded-for') || session.userId || 'escalation_client';
+    const rateCheck = checkRateLimit(ip, { windowMs: 60000, maxRequests: 5 });
+    if (!rateCheck.allowed) {
+      return NextResponse.json({ error: 'RATE_LIMIT_EXCEEDED', message: 'Too many escalation requests' }, { status: 429 });
     }
+
+    const body = await req.json();
+    const { incidentId, reason } = body;
 
     if (!incidentId) {
       return NextResponse.json(
@@ -23,8 +26,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const safeReason = sanitizeHtmlText(reason);
     const service = AuthorityNotificationService.getInstance();
-    const escalationRecord = await service.escalateIncidentToAuthority(userSession, incidentId, reason);
+    const escalationRecord = await service.escalateIncidentToAuthority(session, incidentId, safeReason);
 
     return NextResponse.json({
       success: true,
@@ -33,27 +37,28 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error('[API /api/authority/escalate] Error:', error);
-    const status = error.message && error.message.startsWith('UNAUTHORIZED') ? 403 : 500;
+    const isAuthError = error.message?.includes('UNAUTHORIZED');
 
     return NextResponse.json(
       {
-        error: error.message?.startsWith('UNAUTHORIZED') ? 'UNAUTHORIZED' : 'SERVER_ERROR',
+        error: isAuthError ? 'UNAUTHORIZED' : 'SERVER_ERROR',
         message: error.message || 'Authority escalation failed.',
       },
-      { status }
+      { status: isAuthError ? 403 : 500 }
     );
   }
 }
 
 export async function GET(req: NextRequest) {
   try {
+    const session = authenticateServerSession(req, [
+      'VERIFIED_COMMUNITY_LEADER',
+      'AUTHORITY_DISPATCHER',
+      'SYSTEM_ADMIN',
+    ]);
+
     const { searchParams } = new URL(req.url);
     const incidentId = searchParams.get('incidentId');
-    const role = (searchParams.get('role') || 'ANONYMOUS') as any;
-    const isAuthenticated = searchParams.get('isAuthenticated') === 'true';
-    const userId = searchParams.get('userId') || undefined;
-
-    const session: UserSession = { role, isAuthenticated, userId };
 
     if (!incidentId) {
       return NextResponse.json(
@@ -70,13 +75,13 @@ export async function GET(req: NextRequest) {
       escalation: record,
     });
   } catch (error: any) {
-    const status = error.message && error.message.startsWith('UNAUTHORIZED') ? 403 : 500;
+    const isAuthError = error.message?.includes('UNAUTHORIZED');
     return NextResponse.json(
       {
-        error: error.message?.startsWith('UNAUTHORIZED') ? 'UNAUTHORIZED' : 'SERVER_ERROR',
+        error: isAuthError ? 'UNAUTHORIZED' : 'SERVER_ERROR',
         message: error.message || 'Error fetching authority escalation status.',
       },
-      { status }
+      { status: isAuthError ? 403 : 500 }
     );
   }
 }

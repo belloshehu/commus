@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { Alert } from './Alert';
+import { useTranslation } from '@/lib/i18n/context';
 
 export type DangerLevel = 'HIGH' | 'MEDIUM' | 'LOW' | 'CRITICAL';
 
@@ -15,6 +16,7 @@ export const DangerLevelIndicator: React.FC<DangerLevelIndicatorProps> = ({
   showSafetyBanner = false,
   compact = false,
 }) => {
+  const { t } = useTranslation();
   const isHigh = level === 'HIGH' || level === 'CRITICAL';
 
   const config = {
@@ -22,33 +24,33 @@ export const DangerLevelIndicator: React.FC<DangerLevelIndicatorProps> = ({
       bg: 'bg-red-950/90 border-red-700 text-red-100',
       badgeBg: 'bg-red-600 text-white',
       icon: <AlertTriangle className="w-4 h-4 text-red-200 shrink-0" aria-hidden="true" />,
-      label: 'CRITICAL RISK',
+      label: t('dangerLevels.critical'),
       ariaLabel: 'Critical Danger Level - High Priority Incident',
-      description: 'Requires immediate authority awareness & community shelter.',
+      description: t('dangerLevels.criticalDesc'),
     },
     HIGH: {
       bg: 'bg-red-950/80 border-red-800 text-red-200',
       badgeBg: 'bg-red-700 text-white',
       icon: <AlertTriangle className="w-4 h-4 text-red-300 shrink-0" aria-hidden="true" />,
-      label: 'HIGH RISK',
+      label: t('dangerLevels.high'),
       ariaLabel: 'High Danger Level - Urgent Priority Incident',
-      description: 'Active hazard zone. Exercise extreme caution.',
+      description: t('dangerLevels.highDesc'),
     },
     MEDIUM: {
       bg: 'bg-amber-950/80 border-amber-800 text-amber-200',
       badgeBg: 'bg-amber-600 text-white',
       icon: <AlertCircle className="w-4 h-4 text-amber-300 shrink-0" aria-hidden="true" />,
-      label: 'MEDIUM RISK',
+      label: t('dangerLevels.medium'),
       ariaLabel: 'Medium Danger Level - Attention Required',
-      description: 'Developing situation. Stay alert in nearby vicinity.',
+      description: t('dangerLevels.mediumDesc'),
     },
     LOW: {
       bg: 'bg-sky-950/80 border-sky-800 text-sky-200',
       badgeBg: 'bg-sky-600 text-white',
       icon: <Info className="w-4 h-4 text-sky-300 shrink-0" aria-hidden="true" />,
-      label: 'LOW RISK',
+      label: t('dangerLevels.low'),
       ariaLabel: 'Low Danger Level - Early Warning Information',
-      description: 'Informational advisory or minor infrastructure hazard.',
+      description: t('dangerLevels.lowDesc'),
     },
   };
 

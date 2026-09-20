@@ -1,14 +1,16 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Shield, Bell, User, Globe, Menu, LogIn, LogOut } from 'lucide-react';
+import { Shield, Bell, User, Globe, Menu, LogIn } from 'lucide-react';
 import { StatusIndicator } from '../ui/StatusIndicator';
 import { Badge } from '../ui/Badge';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from '@/lib/i18n/context';
+import { SupportedLocale } from '@/lib/i18n/types';
 
 export interface HeaderProps {
-  currentLocale: 'en' | 'ar';
-  onLocaleChange: (locale: 'en' | 'ar') => void;
+  currentLocale?: 'en' | 'ar';
+  onLocaleChange?: (locale: any) => void;
   unreadAlertCount: number;
   onOpenNotifications: () => void;
   onOpenProfile: () => void;
@@ -17,16 +19,15 @@ export interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  currentLocale,
-  onLocaleChange,
   unreadAlertCount,
   onOpenNotifications,
   onOpenProfile,
   onToggleMobileMenu,
   isRtdbConnected = true,
 }) => {
-  const { session, user, logout } = useAuth();
+  const { session, logout } = useAuth();
   const router = useRouter();
+  const { locale, setLocale, availableLocales, metadata } = useTranslation();
 
   return (
     <header className="sticky top-0 z-40 w-full bg-slate-950/90 border-b border-slate-800/90 backdrop-blur-md px-4 lg:px-8 py-3">
@@ -64,25 +65,23 @@ export const Header: React.FC<HeaderProps> = ({
           <StatusIndicator status={isRtdbConnected ? 'connected' : 'offline'} />
         </div>
 
-        {/* Right: Actions (Locale, Notifications, Auth / Profile) */}
+        {/* Right: Actions (8-Language Selector, Notifications, Auth / Profile) */}
         <div className="flex items-center gap-2.5">
-          {/* Locale Switcher */}
-          <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-1 text-xs font-semibold">
-            <Globe className="w-3.5 h-3.5 text-slate-400 ml-1 mr-1.5 hidden sm:block" />
-            <button
-              onClick={() => onLocaleChange('en')}
-              className={`px-2 py-1 rounded ${currentLocale === 'en' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'}`}
-              aria-label="Switch language to English"
+          {/* 8-Language Selector Dropdown */}
+          <div className="relative flex items-center bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-300 hover:border-slate-700 transition-all">
+            <Globe className="w-3.5 h-3.5 text-sky-400 mr-1.5 shrink-0" />
+            <select
+              value={locale}
+              onChange={(e) => setLocale(e.target.value as SupportedLocale)}
+              className="bg-transparent text-white font-medium focus:outline-none cursor-pointer pr-1"
+              aria-label="Select preferred language"
             >
-              EN
-            </button>
-            <button
-              onClick={() => onLocaleChange('ar')}
-              className={`px-2 py-1 rounded ${currentLocale === 'ar' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'}`}
-              aria-label="Switch language to Arabic"
-            >
-              العربية
-            </button>
+              {availableLocales.map((loc) => (
+                <option key={loc.code} value={loc.code} className="bg-slate-950 text-white">
+                  {loc.flagEmoji} {loc.nativeName} ({loc.englishName}) {loc.dir === 'rtl' ? ' [RTL]' : ''}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Notifications Bell */}

@@ -43,3 +43,17 @@ export function canViewPrivateCommunityIncidents(session: UserSession, targetCom
 export function canAccessPreciseLocation(session: UserSession): boolean {
   return session.isAuthenticated && (session.role === 'AUTHORITY_DISPATCHER' || session.role === 'SYSTEM_ADMIN');
 }
+
+/**
+ * MANDATE: Administration functions are strictly limited to SYSTEM_ADMIN users.
+ */
+export function isSystemAdmin(session: UserSession): boolean {
+  return Boolean(session.isAuthenticated && session.role === 'SYSTEM_ADMIN');
+}
+
+export function assertSystemAdmin(session: UserSession): void {
+  if (!isSystemAdmin(session)) {
+    throw new Error('UNAUTHORIZED: SYSTEM_ADMIN privileges are required for this administrative operation.');
+  }
+}
+

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { canSubmitIncident, UserSession } from '../src/lib/auth';
+import { signSessionToken } from '../src/lib/security';
 import { fuzzLocation, encryptPreciseLocation, decryptPreciseLocation } from '../src/lib/location';
 
 // Mock Firebase client module to prevent actual network calls during unit tests
@@ -96,10 +97,11 @@ describe('Antijj Multi-Step Incident Reporting Workflow', () => {
     });
 
     it('rejects submissions with missing or short title with 400', async () => {
+      const token = signSessionToken(citizenSession);
       const req = new NextRequest('http://localhost:3000/api/incidents', {
         method: 'POST',
+        headers: { authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          session: citizenSession,
           title: 'Hi', // Less than 3 chars
           description: 'Valid long description of the safety event',
           dangerLevel: 'LOW',
@@ -116,10 +118,11 @@ describe('Antijj Multi-Step Incident Reporting Workflow', () => {
     });
 
     it('rejects submissions without mandatory safety confirmation with 400', async () => {
+      const token = signSessionToken(citizenSession);
       const req = new NextRequest('http://localhost:3000/api/incidents', {
         method: 'POST',
+        headers: { authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          session: citizenSession,
           title: 'Traffic Bottleneck',
           description: 'Severe traffic congestion near central station plaza',
           dangerLevel: 'MEDIUM',
@@ -138,10 +141,11 @@ describe('Antijj Multi-Step Incident Reporting Workflow', () => {
     });
 
     it('accepts valid incident report payloads and returns incidentId with fuzzed location', async () => {
+      const token = signSessionToken(citizenSession);
       const req = new NextRequest('http://localhost:3000/api/incidents', {
         method: 'POST',
+        headers: { authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          session: citizenSession,
           communityId: 'comm_central',
           category: 'CROWD_SAFETY_ALERT',
           title: 'Crowd Bottleneck Near Main Transit Exit',
@@ -157,7 +161,7 @@ describe('Antijj Multi-Step Incident Reporting Workflow', () => {
           evidence: [
             {
               id: 'ev_101',
-              url: 'mock_preview_url',
+              url: 'https://storage.googleapis.com/antijj/gate_crowd.jpg',
               type: 'image',
               name: 'gate_crowd.jpg',
               size: 2048500,

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Activity, Map, Bell, Shield, Radio, ChevronRight, Building2 } from 'lucide-react';
+import { Activity, Map, Bell, Shield, Radio, ChevronRight, Building2, BookOpen, ShieldAlert } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/context';
 
 export interface NavItem {
   id: string;
@@ -18,44 +19,60 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   onTabSelect,
 }) => {
+  const { t } = useTranslation();
+
   const navItems: NavItem[] = [
     {
       id: 'incidents',
-      label: 'Incident Feed',
+      label: t('nav.incidentFeed'),
       icon: <Activity className="w-4 h-4" />,
       badge: 'Live',
       badgeColor: 'bg-emerald-950 text-emerald-300 border-emerald-800',
     },
     {
       id: 'communities',
-      label: 'Join Community',
+      label: t('nav.joinCommunity'),
       icon: <Building2 className="w-4 h-4" />,
       badge: '1-Click',
       badgeColor: 'bg-sky-950 text-sky-300 border-sky-800',
     },
     {
+      id: 'education',
+      label: t('nav.educationBadges'),
+      icon: <BookOpen className="w-4 h-4" />,
+      badge: 'Badges',
+      badgeColor: 'bg-purple-950 text-purple-300 border-purple-800',
+    },
+    {
       id: 'map',
-      label: 'Response Map',
+      label: t('nav.responseMap'),
       icon: <Map className="w-4 h-4" />,
     },
     {
       id: 'alerts',
-      label: 'Community Alerts',
+      label: t('nav.alerts'),
       icon: <Bell className="w-4 h-4" />,
       badge: '3 High',
       badgeColor: 'bg-amber-950 text-amber-300 border-amber-800',
     },
     {
       id: 'guidance',
-      label: 'Safety Guidance',
+      label: t('nav.safetyGuidance'),
       icon: <Shield className="w-4 h-4" />,
     },
     {
       id: 'dispatch',
-      label: 'Authority Dispatch',
+      label: t('nav.authorityDispatch'),
       icon: <Radio className="w-4 h-4" />,
       badge: 'Audited',
       badgeColor: 'bg-red-950 text-red-300 border-red-800',
+    },
+    {
+      id: 'admin',
+      label: 'Admin Dashboard',
+      icon: <ShieldAlert className="w-4 h-4" />,
+      badge: 'RBAC',
+      badgeColor: 'bg-amber-950 text-amber-300 border-amber-800',
     },
   ];
 

@@ -19,6 +19,7 @@ import { LoadingState } from '@/components/ui/LoadingState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { AuthorityDirectory } from '@/components/authority/AuthorityDirectory';
+import { EducationTab } from '@/components/education/EducationTab';
 import { AlertTriangle, Plus, Search, ShieldCheck } from 'lucide-react';
 
 const mockIncidents: IncidentCardData[] = [
@@ -203,6 +204,18 @@ export default function HomePage() {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {/* Tab Content: Education & Engagement */}
+        {activeTab === 'education' && (
+          <EducationTab
+            userSession={{
+              userId: 'user_demo_101',
+              role: 'VERIFIED_COMMUNITY_LEADER',
+              isAuthenticated: true,
+              communityIds: ['comm_central'],
+            }}
+          />
         )}
 
         {/* Tab Content 4: Safety Guidance */}

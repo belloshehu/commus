@@ -2,40 +2,35 @@ import React, { useState } from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { MobileNav } from './MobileNav';
-import { NotificationDrawer, AlertNotification } from './NotificationDrawer';
+import { NotificationDrawer } from './NotificationDrawer';
 import { ProfileMenu } from './ProfileMenu';
 import { Alert } from '../ui/Alert';
+import { I18nProvider, useTranslation } from '@/lib/i18n/context';
 
 export interface AppShellProps {
   children: React.ReactNode;
   activeTab?: string;
   onTabSelect?: (tabId: string) => void;
-  alerts?: AlertNotification[];
-  currentLocale?: 'en' | 'ar';
-  onLocaleChange?: (locale: 'en' | 'ar') => void;
+  alerts?: any[];
+  currentLocale?: any;
+  onLocaleChange?: (locale: any) => void;
 }
 
-export const AppShell: React.FC<AppShellProps> = ({
+const AppShellContent: React.FC<AppShellProps> = ({
   children,
   activeTab = 'incidents',
   onTabSelect = () => {},
-  alerts = [],
-  currentLocale = 'en',
-  onLocaleChange = () => {},
 }) => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [activeAlerts, setActiveAlerts] = useState<AlertNotification[]>(alerts);
-
-  const isRtl = currentLocale === 'ar';
+  const [unreadCount, setUnreadCount] = useState(2);
+  const { dir, isRtl, t } = useTranslation();
 
   return (
-    <div dir={isRtl ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div dir={dir} className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       {/* Top Application Header */}
       <Header
-        currentLocale={currentLocale}
-        onLocaleChange={onLocaleChange}
-        unreadAlertCount={activeAlerts.length}
+        unreadAlertCount={unreadCount}
         onOpenNotifications={() => setIsNotificationsOpen(true)}
         onOpenProfile={() => setIsProfileOpen(true)}
       />
@@ -50,7 +45,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           {/* Top Safety Banner Mandate */}
           <div className="mb-6">
             <Alert type="safety">
-              SAFETY FIRST: Do NOT approach violent crowds or active conflict areas. Seek immediate shelter or safety.
+              {t('common.safetyFirstNotice')}
             </Alert>
           </div>
 
@@ -65,8 +60,7 @@ export const AppShell: React.FC<AppShellProps> = ({
       <NotificationDrawer
         isOpen={isNotificationsOpen}
         onClose={() => setIsNotificationsOpen(false)}
-        alerts={activeAlerts}
-        onClearAlerts={() => setActiveAlerts([])}
+        onUnreadCountChange={setUnreadCount}
       />
 
       {/* User Profile Security Menu */}
@@ -77,3 +71,9 @@ export const AppShell: React.FC<AppShellProps> = ({
     </div>
   );
 };
+
+export const AppShell: React.FC<AppShellProps> = (props) => (
+  <I18nProvider>
+    <AppShellContent {...props} />
+  </I18nProvider>
+);

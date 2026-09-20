@@ -1,14 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { canSubmitIncident, UserSession } from '@/lib/auth';
+import { canSubmitIncident } from '@/lib/auth';
 import { fuzzLocation, encryptPreciseLocation } from '@/lib/location';
 import { createIncidentReport, IncidentCategory, IncidentSeverity } from '@/lib/firebase/rtdb';
+import {
+  authenticateServerSession,
+  checkRateLimit,
+  sanitizeHtmlText,
+  sanitizeEvidenceUrl,
+} from '@/lib/security';
 
 export async function POST(req: NextRequest) {
   try {
+    const session = authenticateServerSession(req);
+
+    if (!canSubmitIncident(session)) {
+      return NextResponse.json(
+        {
+          error: 'UNAUTHORIZED',
+          message: 'Anonymous and unauthenticated users are not permitted to submit safety reports.',
+        },
+        { status: 403 }
+      );
+    }
+
+    // Rate Limiting (max 5 incident submissions per minute per user/IP)
+    const ip = req.headers.get('x-forwarded-for') || session.userId || 'reporter_client';
+    const rateCheck = checkRateLimit(ip, { windowMs: 60000, maxRequests: 5 });
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: 'RATE_LIMIT_EXCEEDED',
+          message: 'Rate limit exceeded: You are submitting safety reports too frequently. Please wait a minute.',
+        },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
 
     const {
-      session,
       communityId = 'comm_central',
       category = 'DISTURBANCE',
       title,
@@ -20,27 +50,17 @@ export async function POST(req: NextRequest) {
       safetyConfirmed,
     } = body;
 
-    // 1. Authorization check
-    const userSession: UserSession = session || { role: 'ANONYMOUS', isAuthenticated: false };
+    // Server-side validation & XSS Sanitization
+    const safeTitle = sanitizeHtmlText(title);
+    const safeDesc = sanitizeHtmlText(description);
 
-    if (!canSubmitIncident(userSession)) {
-      return NextResponse.json(
-        {
-          error: 'UNAUTHORIZED',
-          message: 'Anonymous and unauthenticated users are not permitted to submit safety reports.',
-        },
-        { status: 403 }
-      );
-    }
-
-    // 2. Server-side validation
     const validationErrors: string[] = [];
 
-    if (!title || typeof title !== 'string' || title.trim().length < 3) {
+    if (!safeTitle || safeTitle.length < 3) {
       validationErrors.push('Title must be at least 3 characters long.');
     }
 
-    if (!description || typeof description !== 'string' || description.trim().length < 10) {
+    if (!safeDesc || safeDesc.length < 10) {
       validationErrors.push('Detailed incident description must be at least 10 characters long.');
     }
 
@@ -56,6 +76,26 @@ export async function POST(req: NextRequest) {
       validationErrors.push('Valid incident location coordinates (latitude and longitude) are required.');
     }
 
+    // Evidence URL Protocol Sanitization
+    let safeEvidence: any[] = [];
+    try {
+      safeEvidence = (evidence || []).map((e: any) => ({
+        ...e,
+        url: sanitizeEvidenceUrl(e.url),
+      }));
+    } catch (urlErr: any) {
+      validationErrors.push(urlErr.message);
+    }
+
+    let safeVoiceNoteUrl: string | undefined = undefined;
+    if (voiceNoteUrl) {
+      try {
+        safeVoiceNoteUrl = sanitizeEvidenceUrl(voiceNoteUrl);
+      } catch (voiceErr: any) {
+        validationErrors.push(voiceErr.message);
+      }
+    }
+
     if (validationErrors.length > 0) {
       return NextResponse.json(
         {
@@ -67,7 +107,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Location dual-representation processing
+    // Location dual-representation processing
     const lat = incidentLocation.latitude;
     const lng = incidentLocation.longitude;
     const fuzzed = fuzzLocation(lat, lng);
@@ -81,10 +121,9 @@ export async function POST(req: NextRequest) {
     const encryptedPreciseLocation = encryptPreciseLocation(
       lat,
       lng,
-      incidentLocation.address || incidentLocation.landmark || 'Target Incident Zone'
+      sanitizeHtmlText(incidentLocation.address || incidentLocation.landmark || 'Target Incident Zone')
     );
 
-    // Map dangerLevel to severity
     const severityMap: Record<string, IncidentSeverity> = {
       LOW: 'LOW',
       MEDIUM: 'MEDIUM',
@@ -92,25 +131,24 @@ export async function POST(req: NextRequest) {
     };
     const severity = severityMap[dangerLevel] || 'MEDIUM';
 
-    // 4. Save to RTDB via createIncidentReport helper
-    const result = await createIncidentReport(userSession, {
+    const result = await createIncidentReport(session, {
       communityId,
       category: category as IncidentCategory,
-      title: title.trim(),
-      description: description.trim(),
-      voiceNoteUrl,
+      title: safeTitle,
+      description: safeDesc,
+      voiceNoteUrl: safeVoiceNoteUrl,
       blurredLocation,
       encryptedPreciseLocation,
       incidentLocation: {
-        address: incidentLocation.address || '',
-        landmark: incidentLocation.landmark || '',
+        address: sanitizeHtmlText(incidentLocation.address || ''),
+        landmark: sanitizeHtmlText(incidentLocation.landmark || ''),
         latitude: fuzzed.blurredLatitude,
         longitude: fuzzed.blurredLongitude,
         isFuzzed: true,
       },
       severity,
       dangerLevel,
-      evidence,
+      evidence: safeEvidence,
       safetyConfirmed: true,
       authorityNotificationStatus: 'PENDING',
       moderationStatus: 'UNREVIEWED',
