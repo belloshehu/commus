@@ -10,6 +10,8 @@ import { EvidencePreview } from '@/components/ui/EvidencePreview';
 import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 import { Drawer } from '@/components/ui/Drawer';
 import { IncidentReportWizard } from '@/components/incident/IncidentReportWizard';
+import { VoiceReportWizard } from '@/components/incident/VoiceReportWizard';
+import { ReportMethodModal } from '@/components/incident/ReportMethodModal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { TextArea } from '@/components/ui/TextArea';
@@ -89,6 +91,15 @@ export default function HomePage() {
 
   const filteredIncidents = filterIncidents(mockIncidents, filters);
 
+  const [isMethodModalOpen, setIsMethodModalOpen] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState<'wizard' | 'voice'>('wizard');
+
+  const handleSelectMethod = (method: 'wizard' | 'voice') => {
+    setSelectedMethod(method);
+    setIsMethodModalOpen(false);
+    setIsSubmitting(true);
+  };
+
   return (
     <AppShell
       currentLocale={locale}
@@ -108,6 +119,13 @@ export default function HomePage() {
       ]}
     >
       <div className="space-y-8">
+        {/* Preliminary Report Method Selection Modal */}
+        <ReportMethodModal
+          isOpen={isMethodModalOpen}
+          onClose={() => setIsMethodModalOpen(false)}
+          onSelectMethod={handleSelectMethod}
+        />
+
         {/* Header Title Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
           <div>
@@ -126,7 +144,7 @@ export default function HomePage() {
             <Button
               variant="primary"
               icon={<Plus className="w-4 h-4" />}
-              onClick={() => setIsSubmitting(true)}
+              onClick={() => setIsMethodModalOpen(true)}
             >
               Report Incident
             </Button>
@@ -294,15 +312,24 @@ export default function HomePage() {
         <Drawer
           isOpen={isSubmitting}
           onClose={() => setIsSubmitting(false)}
-          title="Submit Community Safety Report"
+          title={selectedMethod === 'voice' ? 'Submit Voice Safety Report' : 'Submit Community Safety Report'}
         >
           <div className="py-2">
-            <IncidentReportWizard
-              onCompleted={() => {
-                setIsSubmitting(false);
-              }}
-              onCancel={() => setIsSubmitting(false)}
-            />
+            {selectedMethod === 'voice' ? (
+              <VoiceReportWizard
+                onCompleted={() => {
+                  setIsSubmitting(false);
+                }}
+                onCancel={() => setIsSubmitting(false)}
+              />
+            ) : (
+              <IncidentReportWizard
+                onCompleted={() => {
+                  setIsSubmitting(false);
+                }}
+                onCancel={() => setIsSubmitting(false)}
+              />
+            )}
           </div>
         </Drawer>
       </div>

@@ -152,7 +152,8 @@ export function sanitizeEvidenceUrl(url: string | undefined | null): string {
     trimmed.startsWith('https://') ||
     trimmed.startsWith('http://localhost') ||
     trimmed.startsWith('/') ||
-    trimmed.startsWith('mock://')
+    trimmed.startsWith('mock://') ||
+    trimmed.startsWith('blob:')
   ) {
     return trimmed;
   }
