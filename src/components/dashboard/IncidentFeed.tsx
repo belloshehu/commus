@@ -12,6 +12,7 @@ interface IncidentFeedProps {
   filters: FilterState;
   onViewDetails?: (id: string) => void;
   onEscalate?: (id: string) => void;
+  onVote?: (id: string, voteType: 'UP' | 'DOWN') => void;
 }
 
 export const filterIncidents = (
@@ -33,6 +34,11 @@ export const filterIncidents = (
 
     // 3. Status filter
     if (filters.statusFilter !== 'ALL' && incident.status !== filters.statusFilter) {
+      return false;
+    }
+
+    // 4. Category filter
+    if (filters.categoryFilter && filters.categoryFilter !== 'ALL' && incident.category !== filters.categoryFilter) {
       return false;
     }
 
@@ -65,6 +71,7 @@ export const IncidentFeed: React.FC<IncidentFeedProps> = ({
   filters,
   onViewDetails,
   onEscalate,
+  onVote,
 }) => {
   const filtered = filterIncidents(incidents, filters);
 
@@ -112,6 +119,7 @@ export const IncidentFeed: React.FC<IncidentFeedProps> = ({
                 }}
                 onViewDetails={onViewDetails}
                 onEscalate={onEscalate}
+                onVote={onVote}
               />
             </div>
           );

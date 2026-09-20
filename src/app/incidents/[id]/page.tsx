@@ -7,6 +7,7 @@ import { IncidentRecord, subscribeToIncident, subscribeToActiveCoordination, Act
 import { canViewPrivateCommunityIncidents } from '@/lib/auth';
 import { DangerLevelIndicator } from '@/components/ui/DangerLevelIndicator';
 import { Badge } from '@/components/ui/Badge';
+import { CategoryBadge } from '@/lib/incidentCategoryHelper';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
@@ -22,6 +23,8 @@ import {
   Activity,
   AlertTriangle,
   Radio,
+  ThumbsUp,
+  ThumbsDown,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -106,6 +109,37 @@ export default function IncidentDetailPage({
   const [coordination, setCoordination] = useState<ActiveCoordination | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [userVote, setUserVote] = useState<'UP' | 'DOWN' | null>(null);
+
+  const handleVote = async (voteType: 'UP' | 'DOWN') => {
+    if (!incidentId) return;
+    try {
+      const res = await fetch(`/api/incidents/${incidentId}/vote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-session': JSON.stringify(session),
+        },
+        body: JSON.stringify({ voteType }),
+      });
+      const data = await res.json();
+      if (data.success && incident) {
+        setUserVote(data.userVote);
+        setIncident((prev) =>
+          prev
+            ? {
+                ...prev,
+                upvotes: data.upvotes,
+                downvotes: data.downvotes,
+                authenticityStatus: data.authenticityStatus,
+              }
+            : null
+        );
+      }
+    } catch (err: any) {
+      console.warn('Vote submission error:', err);
+    }
+  };
 
   useEffect(() => {
     setIsLoading(true);
@@ -205,7 +239,7 @@ export default function IncidentDetailPage({
                     <Badge variant={incident.status === 'VERIFIED' ? 'success' : incident.status === 'ESCALATED' ? 'danger' : 'info'}>
                       STATUS: {incident.status}
                     </Badge>
-                    <Badge variant="outline">{incident.category}</Badge>
+                    <CategoryBadge category={incident.category} size="md" />
                   </div>
 
                   <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
@@ -225,6 +259,50 @@ export default function IncidentDetailPage({
                   level={incident.dangerLevel || (incident.severity as any) || 'MEDIUM'}
                   showSafetyBanner={incident.dangerLevel === 'HIGH' || incident.severity === 'HIGH'}
                 />
+
+                {/* Questionable Authenticity Warning Banner */}
+                {(incident.authenticityStatus === 'QUESTIONABLE_AUTHENTICITY' ||
+                  ((incident.upvotes || 0) + (incident.downvotes || 0) > 0 &&
+                    (incident.downvotes || 0) / ((incident.upvotes || 0) + (incident.downvotes || 0)) > 0.20)) && (
+                  <Alert type="danger">
+                    <strong>QUESTIONABLE AUTHENTICITY ALERT:</strong> Over 20% of community member votes indicate this report may contain unverified or questionable information ({incident.downvotes || 0} downvotes out of {(incident.upvotes || 0) + (incident.downvotes || 0)} total votes). Please verify with caution.
+                  </Alert>
+                )}
+
+                {/* Community Voting Controls */}
+                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-slate-200 block">Community Authenticity Approval</span>
+                    <span className="text-[11px] text-slate-400">Vote to approve or question report accuracy</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-lg p-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleVote('UP')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
+                        userVote === 'UP'
+                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/50'
+                          : 'text-slate-400 hover:text-emerald-400 hover:bg-slate-800'
+                      }`}
+                    >
+                      <ThumbsUp className="w-4 h-4" />
+                      <span>{incident.upvotes || 0} Upvotes</span>
+                    </button>
+                    <div className="h-5 w-px bg-slate-800" />
+                    <button
+                      type="button"
+                      onClick={() => handleVote('DOWN')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
+                        userVote === 'DOWN'
+                          ? 'bg-rose-950 text-rose-300 border border-rose-500/50'
+                          : 'text-slate-400 hover:text-rose-400 hover:bg-slate-800'
+                      }`}
+                    >
+                      <ThumbsDown className="w-4 h-4" />
+                      <span>{incident.downvotes || 0} Downvotes</span>
+                    </button>
+                  </div>
+                </div>
 
                 {/* Reporter Privacy Label Guarantee */}
                 <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs">

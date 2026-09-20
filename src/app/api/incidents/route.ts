@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { canSubmitIncident } from '@/lib/auth';
 import { fuzzLocation, encryptPreciseLocation } from '@/lib/location';
 import { createIncidentReport, IncidentCategory, IncidentSeverity } from '@/lib/firebase/rtdb';
+import { NotificationService } from '@/lib/notifications/service';
+import { AuthorityNotificationService } from '@/lib/authority/service';
 import {
   authenticateServerSession,
   checkRateLimit,
@@ -150,15 +152,50 @@ export async function POST(req: NextRequest) {
       dangerLevel,
       evidence: safeEvidence,
       safetyConfirmed: true,
+      upvotes: 0,
+      downvotes: 0,
+      authenticityStatus: 'UNREVIEWED',
       authorityNotificationStatus: 'PENDING',
       moderationStatus: 'UNREVIEWED',
     });
+
+    // 1. Dispatch Member In-App / Push Notification
+    try {
+      await NotificationService.getInstance().dispatchEventNotification({
+        recipientUserId: session.userId || 'community_member',
+        eventType: dangerLevel === 'HIGH' ? 'HIGH_RISK_ALERT' : 'NEW_INCIDENT',
+        title: `New Safety Report: ${safeTitle}`,
+        message: safeDesc.substring(0, 140),
+        riskLevel: dangerLevel === 'HIGH' ? 'HIGH' : 'MEDIUM',
+        referenceId: result.incidentId,
+        communityId,
+        actionUrl: `/incidents/${result.incidentId}`,
+      });
+    } catch (notifErr: any) {
+      console.warn('[API /incidents] Member notification dispatch skip:', notifErr.message);
+    }
+
+    // 2. Dispatch Authority Notification (if authority system configured)
+    let authorityStatus = 'PENDING';
+    try {
+      const authService = AuthorityNotificationService.getInstance();
+      const adminSystemSession = { ...session, role: 'SYSTEM_ADMIN' as const };
+      const escRecord = await authService.escalateIncidentToAuthority(
+        adminSystemSession,
+        result.incidentId,
+        `Automated dispatch for newly reported ${dangerLevel} risk incident.`
+      );
+      authorityStatus = escRecord.status;
+    } catch (authErr: any) {
+      console.warn('[API /incidents] Authority notification skip:', authErr.message);
+    }
 
     return NextResponse.json({
       success: true,
       incidentId: result.incidentId,
       message: 'Safety incident report submitted successfully.',
       blurredLocation,
+      authorityStatus,
     });
   } catch (error: any) {
     console.error('[API /incidents] Incident submission error:', error);

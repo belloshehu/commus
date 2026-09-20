@@ -70,6 +70,9 @@ export interface IncidentRecord {
   evidence?: EvidenceItem[];
   safetyConfirmed?: boolean;
   status: IncidentStatus;
+  upvotes?: number;
+  downvotes?: number;
+  authenticityStatus?: 'VERIFIED_COMMUNITY' | 'UNREVIEWED' | 'QUESTIONABLE_AUTHENTICITY';
   authorityNotificationStatus?: 'PENDING' | 'NOTIFIED' | 'FAILED' | 'SKIPPED';
   moderationStatus?: 'UNREVIEWED' | 'APPROVED' | 'FLAGGED' | 'REJECTED';
   riskAssessment?: RiskAssessment;
@@ -124,6 +127,9 @@ export async function createIncidentReport(
     id: incidentId,
     reporterLabel: 'Reported by a verified community member',
     status: 'SUBMITTED',
+    upvotes: payload.upvotes || 0,
+    downvotes: payload.downvotes || 0,
+    authenticityStatus: payload.authenticityStatus || 'UNREVIEWED',
     dangerLevel: payload.dangerLevel || (payload.severity as any) || 'MEDIUM',
     authorityNotificationStatus: payload.authorityNotificationStatus || 'PENDING',
     moderationStatus: payload.moderationStatus || 'UNREVIEWED',
@@ -419,4 +425,109 @@ export async function getNearbyCommunities(
   // Returns discoverable nearby communities
   return mockDefaultCommunities;
 }
+
+export type VoteType = 'UP' | 'DOWN';
+
+export async function recordVote(
+  session: UserSession,
+  incidentId: string,
+  voteType: VoteType
+): Promise<{
+  upvotes: number;
+  downvotes: number;
+  authenticityStatus: 'VERIFIED_COMMUNITY' | 'UNREVIEWED' | 'QUESTIONABLE_AUTHENTICITY';
+  userVote: VoteType | null;
+}> {
+  if (!session.isAuthenticated || !session.userId) {
+    throw new Error('UNAUTHORIZED: Must be logged in to vote on safety reports.');
+  }
+
+  const incidentRef = ref(rtdb, `incidents/${incidentId}`);
+  const snapshot = await get(incidentRef);
+
+  if (!snapshot.exists()) {
+    throw new Error(`NOT_FOUND: Incident ${incidentId} does not exist.`);
+  }
+
+  const incident = snapshot.val() as IncidentRecord;
+
+  // Authorization check
+  if (!canViewPrivateCommunityIncidents(session, incident.communityId)) {
+    throw new Error('UNAUTHORIZED: You do not have permission to vote on reports in this community zone.');
+  }
+
+  const userVoteRef = ref(rtdb, `incidentVotes/${incidentId}/${session.userId}`);
+  const voteSnap = await get(userVoteRef);
+  const previousVote: VoteType | null = voteSnap.exists() ? voteSnap.val() : null;
+
+  let currentUpvotes = incident.upvotes || 0;
+  let currentDownvotes = incident.downvotes || 0;
+  let newVote: VoteType | null = voteType;
+
+  if (previousVote === voteType) {
+    // Toggle off vote if clicking the same vote again
+    newVote = null;
+    if (voteType === 'UP') {
+      currentUpvotes = Math.max(0, currentUpvotes - 1);
+    } else {
+      currentDownvotes = Math.max(0, currentDownvotes - 1);
+    }
+    await set(userVoteRef, null);
+  } else {
+    // Changing vote or voting for first time
+    if (previousVote === 'UP') {
+      currentUpvotes = Math.max(0, currentUpvotes - 1);
+    } else if (previousVote === 'DOWN') {
+      currentDownvotes = Math.max(0, currentDownvotes - 1);
+    }
+
+    if (voteType === 'UP') {
+      currentUpvotes += 1;
+    } else {
+      currentDownvotes += 1;
+    }
+
+    await set(userVoteRef, voteType);
+  }
+
+  // Recalculate authenticity status (>20% downvotes indicates QUESTIONABLE_AUTHENTICITY)
+  const totalVotes = currentUpvotes + currentDownvotes;
+  let newAuthenticityStatus: 'VERIFIED_COMMUNITY' | 'UNREVIEWED' | 'QUESTIONABLE_AUTHENTICITY' = 'UNREVIEWED';
+
+  if (totalVotes > 0) {
+    const downvotePercentage = currentDownvotes / totalVotes;
+    if (downvotePercentage > 0.20) {
+      newAuthenticityStatus = 'QUESTIONABLE_AUTHENTICITY';
+    } else if (currentUpvotes >= 3 && downvotePercentage <= 0.20) {
+      newAuthenticityStatus = 'VERIFIED_COMMUNITY';
+    }
+  }
+
+  await update(incidentRef, {
+    upvotes: currentUpvotes,
+    downvotes: currentDownvotes,
+    authenticityStatus: newAuthenticityStatus,
+    updatedAt: Date.now(),
+  });
+
+  return {
+    upvotes: currentUpvotes,
+    downvotes: currentDownvotes,
+    authenticityStatus: newAuthenticityStatus,
+    userVote: newVote,
+  };
+}
+
+export async function getUserVote(
+  session: UserSession,
+  incidentId: string
+): Promise<VoteType | null> {
+  if (!session.isAuthenticated || !session.userId) {
+    return null;
+  }
+  const userVoteRef = ref(rtdb, `incidentVotes/${incidentId}/${session.userId}`);
+  const snap = await get(userVoteRef);
+  return snap.exists() ? snap.val() : null;
+}
+
 

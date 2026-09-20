@@ -84,6 +84,7 @@ export default function HomePage() {
     communityId: 'comm_central',
     timeFilter: 'ALL',
     statusFilter: 'ALL',
+    categoryFilter: 'ALL',
   });
 
   const filteredIncidents = filterIncidents(mockIncidents, filters);

@@ -15,6 +15,7 @@ export interface FilterState {
   communityId: string;
   timeFilter: TimeFilter;
   statusFilter: StatusFilter;
+  categoryFilter?: string;
 }
 
 export interface CommunityOption {
@@ -60,6 +61,7 @@ export const IncidentFilterBar: React.FC<IncidentFilterBarProps> = ({
           {(filters.dangerLevel !== 'ALL' ||
             filters.timeFilter !== 'ALL' ||
             filters.statusFilter !== 'ALL' ||
+            (filters.categoryFilter && filters.categoryFilter !== 'ALL') ||
             filters.searchQuery !== '') && (
             <button
               type="button"
@@ -69,6 +71,7 @@ export const IncidentFilterBar: React.FC<IncidentFilterBarProps> = ({
                   dangerLevel: 'ALL',
                   timeFilter: 'ALL',
                   statusFilter: 'ALL',
+                  categoryFilter: 'ALL',
                   searchQuery: '',
                 })
               }
@@ -81,7 +84,7 @@ export const IncidentFilterBar: React.FC<IncidentFilterBarProps> = ({
       </div>
 
       {/* Multi-Criteria Filters Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 border-t border-slate-800/80 pt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 border-t border-slate-800/80 pt-4">
         {/* 1. Community Selector */}
         <div className="space-y-1">
           <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
@@ -100,7 +103,26 @@ export const IncidentFilterBar: React.FC<IncidentFilterBarProps> = ({
           </select>
         </div>
 
-        {/* 2. Danger Level Filter */}
+        {/* 2. Category Filter */}
+        <div className="space-y-1">
+          <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+            <Filter className="w-3 h-3 text-amber-400" /> Category
+          </label>
+          <select
+            value={filters.categoryFilter || 'ALL'}
+            onChange={(e) => onFilterChange({ ...filters, categoryFilter: e.target.value })}
+            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-500 font-medium"
+          >
+            <option value="ALL">All Categories</option>
+            <option value="CROWD_SAFETY_ALERT">👥 Crowd Safety Alert</option>
+            <option value="TRAFFIC_HAZARD">🚗 Traffic Hazard</option>
+            <option value="INFRASTRUCTURE_FAILURE">⚡ Infrastructure Failure</option>
+            <option value="DISTURBANCE">📢 Disturbance</option>
+            <option value="EMERGENCY_OTHER">🛡️ Emergency Other</option>
+          </select>
+        </div>
+
+        {/* 3. Danger Level Filter */}
         <div className="space-y-1">
           <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
             <ShieldAlert className="w-3 h-3 text-red-400" /> Danger Assessment
@@ -117,7 +139,7 @@ export const IncidentFilterBar: React.FC<IncidentFilterBarProps> = ({
           </select>
         </div>
 
-        {/* 3. Time Filter */}
+        {/* 4. Time Filter */}
         <div className="space-y-1">
           <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
             <Clock className="w-3 h-3 text-emerald-400" /> Time Window
@@ -134,20 +156,20 @@ export const IncidentFilterBar: React.FC<IncidentFilterBarProps> = ({
           </select>
         </div>
 
-        {/* 4. Status Filter */}
+        {/* 5. Status Filter */}
         <div className="space-y-1">
           <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-            <Layers className="w-3 h-3 text-purple-400" /> Incident Status
+            <Layers className="w-3 h-3 text-purple-400" /> Status Lifecycle
           </label>
           <select
             value={filters.statusFilter}
             onChange={(e) => onFilterChange({ ...filters, statusFilter: e.target.value as StatusFilter })}
             className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-500 font-medium"
           >
-            <option value="ALL">All Status Lifecycle</option>
+            <option value="ALL">All Lifecycle</option>
             <option value="SUBMITTED">SUBMITTED (Newly Reported)</option>
-            <option value="VERIFIED">VERIFIED (Community Confirmed)</option>
-            <option value="ESCALATED">ESCALATED (Authority Alerted)</option>
+            <option value="VERIFIED">VERIFIED (Confirmed)</option>
+            <option value="ESCALATED">ESCALATED (Alerted)</option>
             <option value="RESOLVED">RESOLVED (Closed)</option>
             <option value="DISMISSED">DISMISSED (Invalid)</option>
           </select>

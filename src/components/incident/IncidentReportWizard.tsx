@@ -28,6 +28,7 @@ import {
   Edit3,
 } from 'lucide-react';
 import Link from 'next/link';
+import { getCategoryConfig, CategoryBadge, CATEGORY_CONFIG_MAP } from '@/lib/incidentCategoryHelper';
 
 export type ReportingStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
@@ -245,28 +246,42 @@ export const IncidentReportWizard: React.FC<IncidentReportWizardProps> = ({
               <label className="text-xs font-semibold text-slate-300 block mb-2">
                 Incident Category
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {[
-                  { key: 'CROWD_SAFETY_ALERT', label: 'Crowd Safety Alert', desc: 'Congestion, bottleneck, mass gathering' },
-                  { key: 'TRAFFIC_HAZARD', label: 'Traffic Hazard', desc: 'Debris, road blockage, vehicle collision' },
-                  { key: 'INFRASTRUCTURE_FAILURE', label: 'Infrastructure Failure', desc: 'Power outage, water main leak, streetlights' },
-                  { key: 'DISTURBANCE', label: 'Disturbance', desc: 'Dispute, loud activity, public hazard' },
-                  { key: 'EMERGENCY_OTHER', label: 'Emergency Other', desc: 'Other safety event requiring attention' },
-                ].map((cat) => (
-                  <button
-                    key={cat.key}
-                    type="button"
-                    onClick={() => setCategory(cat.key as IncidentCategory)}
-                    className={`p-3 rounded-lg border text-left transition-all ${
-                      category === cat.key
-                        ? 'bg-sky-950/40 border-sky-500 text-slate-100 ring-1 ring-sky-500'
-                        : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
-                    }`}
-                  >
-                    <p className="text-xs font-bold">{cat.label}</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">{cat.desc}</p>
-                  </button>
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Incident Category Selection">
+                {Object.values(CATEGORY_CONFIG_MAP).map((cat) => {
+                  const IconComp = cat.icon;
+                  const isSelected = category === cat.key;
+                  return (
+                    <button
+                      key={cat.key}
+                      type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      onClick={() => setCategory(cat.key as IncidentCategory)}
+                      className={`p-3.5 rounded-xl border text-left transition-all flex flex-col gap-2.5 ${
+                        isSelected
+                          ? `${cat.colorClass.bg} ${cat.colorClass.border} text-slate-100 ring-2 ${cat.colorClass.glow}`
+                          : 'bg-slate-950 border-slate-800/80 text-slate-300 hover:border-slate-700 hover:bg-slate-900/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`p-2 rounded-lg border shrink-0 transition-transform ${
+                              isSelected ? `${cat.colorClass.iconBg} scale-105 shadow-md` : 'bg-slate-900 text-slate-400 border-slate-800'
+                            }`}
+                          >
+                            <IconComp className="w-4 h-4" aria-hidden="true" />
+                          </div>
+                          <p className={`text-xs font-bold truncate ${isSelected ? cat.colorClass.text : 'text-slate-200'}`}>
+                            {cat.label}
+                          </p>
+                        </div>
+                        {isSelected && <CheckCircle2 className={`w-4 h-4 ${cat.colorClass.text} shrink-0`} />}
+                      </div>
+                      <p className="text-[11px] text-slate-400 leading-relaxed w-full">{cat.description}</p>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -472,9 +487,9 @@ export const IncidentReportWizard: React.FC<IncidentReportWizardProps> = ({
                   </Button>
                 </div>
                 <p className="text-sm font-bold text-slate-100">{title}</p>
-                <Badge variant="outline" className="mt-1">
-                  {category}
-                </Badge>
+                <div className="mt-1">
+                  <CategoryBadge category={category} size="md" />
+                </div>
                 <p className="text-xs text-slate-300 leading-relaxed pt-1">{description}</p>
                 {voiceNoteUrl && (
                   <div className="text-xs text-sky-400 flex items-center gap-1.5 pt-2">
