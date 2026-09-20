@@ -8,10 +8,12 @@ import { canViewPrivateCommunityIncidents } from '@/lib/auth';
 import { DangerLevelIndicator } from '@/components/ui/DangerLevelIndicator';
 import { Badge } from '@/components/ui/Badge';
 import { CategoryBadge } from '@/lib/incidentCategoryHelper';
+import { VoteConfirmationModal } from '@/components/ui/VoteConfirmationModal';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { EvidenceViewer } from '@/components/dashboard/EvidenceViewer';
+import { IncidentMapView } from '@/components/dashboard/IncidentMapView';
 import { LoadingState } from '@/components/ui/LoadingState';
 import {
   ShieldAlert,
@@ -110,6 +112,7 @@ export default function IncidentDetailPage({
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [userVote, setUserVote] = useState<'UP' | 'DOWN' | null>(null);
+  const [pendingVote, setPendingVote] = useState<'UP' | 'DOWN' | null>(null);
 
   const handleVote = async (voteType: 'UP' | 'DOWN') => {
     if (!incidentId) return;
@@ -278,7 +281,7 @@ export default function IncidentDetailPage({
                   <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-lg p-1.5">
                     <button
                       type="button"
-                      onClick={() => handleVote('UP')}
+                      onClick={() => setPendingVote('UP')}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
                         userVote === 'UP'
                           ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/50'
@@ -291,7 +294,7 @@ export default function IncidentDetailPage({
                     <div className="h-5 w-px bg-slate-800" />
                     <button
                       type="button"
-                      onClick={() => handleVote('DOWN')}
+                      onClick={() => setPendingVote('DOWN')}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
                         userVote === 'DOWN'
                           ? 'bg-rose-950 text-rose-300 border border-rose-500/50'
@@ -303,6 +306,19 @@ export default function IncidentDetailPage({
                     </button>
                   </div>
                 </div>
+
+                <VoteConfirmationModal
+                  isOpen={Boolean(pendingVote)}
+                  voteType={pendingVote}
+                  incidentTitle={incident.title}
+                  onClose={() => setPendingVote(null)}
+                  onConfirm={() => {
+                    if (pendingVote) {
+                      handleVote(pendingVote);
+                    }
+                    setPendingVote(null);
+                  }}
+                />
 
                 {/* Reporter Privacy Label Guarantee */}
                 <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
@@ -336,36 +352,16 @@ export default function IncidentDetailPage({
               </CardContent>
             </Card>
 
-            {/* Approximate Fuzzed Location Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-sky-400" />
-                  Approximate Location & Geohash Grid
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Alert type="info">
-                  Public and community feeds display fuzzed coordinates (~1.1km - 1.5km blur radius) to protect reporter safety.
-                </Alert>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
-                  <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-1">
-                    <span className="text-slate-500 text-[10px] uppercase">Geohash Zone</span>
-                    <p className="text-sky-300 font-bold text-sm">
-                      {incident.blurredLocation?.geohash || 'Zone dr5ru'}
-                    </p>
-                  </div>
-
-                  <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-1">
-                    <span className="text-slate-500 text-[10px] uppercase">Fuzzed Coordinates</span>
-                    <p className="text-slate-200">
-                      Lat {incident.blurredLocation?.latitude}, Lng {incident.blurredLocation?.longitude}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Incident Location & Fuzzed Area Interactive Map */}
+            <IncidentMapView
+              latitude={incident.blurredLocation?.latitude || 40.7128}
+              longitude={incident.blurredLocation?.longitude || -74.0060}
+              geohash={incident.blurredLocation?.geohash || 'Zone dr5ru'}
+              locationName={incident.incidentLocation?.locationName || 'Central District'}
+              state={incident.incidentLocation?.state || 'Lagos State'}
+              country={incident.incidentLocation?.country || 'Nigeria'}
+              address={incident.incidentLocation?.address}
+            />
 
             {/* Media Evidence Gallery */}
             <EvidenceViewer

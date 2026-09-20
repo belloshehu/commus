@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { canSubmitIncident } from '@/lib/auth';
-import { fuzzLocation, encryptPreciseLocation } from '@/lib/location';
+import { fuzzLocation, encryptPreciseLocation, resolveLocationDetails } from '@/lib/location';
 import { createIncidentReport, IncidentCategory, IncidentSeverity } from '@/lib/firebase/rtdb';
 import { NotificationService } from '@/lib/notifications/service';
 import { AuthorityNotificationService } from '@/lib/authority/service';
@@ -109,10 +109,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Location dual-representation processing
+    // Location dual-representation processing & metadata resolution
     const lat = incidentLocation.latitude;
     const lng = incidentLocation.longitude;
     const fuzzed = fuzzLocation(lat, lng);
+
+    const resolvedLocation = resolveLocationDetails(
+      lat,
+      lng,
+      sanitizeHtmlText(incidentLocation.address || ''),
+      sanitizeHtmlText(incidentLocation.locationName || ''),
+      sanitizeHtmlText(incidentLocation.state || ''),
+      sanitizeHtmlText(incidentLocation.country || '')
+    );
 
     const blurredLocation = {
       latitude: fuzzed.blurredLatitude,
@@ -123,7 +132,7 @@ export async function POST(req: NextRequest) {
     const encryptedPreciseLocation = encryptPreciseLocation(
       lat,
       lng,
-      sanitizeHtmlText(incidentLocation.address || incidentLocation.landmark || 'Target Incident Zone')
+      sanitizeHtmlText(incidentLocation.address || incidentLocation.landmark || resolvedLocation.formattedLocation)
     );
 
     const severityMap: Record<string, IncidentSeverity> = {
@@ -142,8 +151,11 @@ export async function POST(req: NextRequest) {
       blurredLocation,
       encryptedPreciseLocation,
       incidentLocation: {
-        address: sanitizeHtmlText(incidentLocation.address || ''),
+        address: sanitizeHtmlText(incidentLocation.address || resolvedLocation.formattedLocation),
         landmark: sanitizeHtmlText(incidentLocation.landmark || ''),
+        locationName: resolvedLocation.locationName,
+        state: resolvedLocation.state,
+        country: resolvedLocation.country,
         latitude: fuzzed.blurredLatitude,
         longitude: fuzzed.blurredLongitude,
         isFuzzed: true,

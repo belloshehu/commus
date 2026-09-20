@@ -49,6 +49,9 @@ export interface EvidenceItem {
 export interface IncidentLocationData {
   address?: string;
   landmark?: string;
+  locationName?: string;
+  state?: string;
+  country?: string;
   latitude: number;
   longitude: number;
   isFuzzed: boolean;
