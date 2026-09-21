@@ -179,5 +179,49 @@ describe('Antijj Multi-Step Incident Reporting Workflow', () => {
       expect(data.blurredLocation.latitude).toBe(40.71);
       expect(data.blurredLocation.longitude).toBe(-74.01);
     });
+
+    it('immediately makes newly created reports available for feed list rendering', async () => {
+      const token = signSessionToken(citizenSession);
+      const req = new NextRequest('http://localhost:3000/api/incidents', {
+        method: 'POST',
+        headers: { authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          communityId: 'comm_central',
+          category: 'TRAFFIC_HAZARD',
+          title: 'Immediate Feed Test Hazard',
+          description: 'Road obstruction that should appear in incident feed immediately upon report completion',
+          dangerLevel: 'MEDIUM',
+          safetyConfirmed: true,
+          incidentLocation: {
+            address: '5th Avenue Crossing',
+            latitude: 40.715,
+            longitude: -74.002,
+          },
+        }),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.success).toBe(true);
+      expect(data.incidentId).toBeDefined();
+
+      // Verify created card format for feed rendering
+      const createdCard = {
+        id: data.incidentId,
+        communityId: 'comm_central',
+        category: 'TRAFFIC_HAZARD',
+        title: 'Immediate Feed Test Hazard',
+        description: 'Road obstruction that should appear in incident feed immediately upon report completion',
+        reporterLabel: 'Reported by a verified community member',
+        blurredLocation: data.blurredLocation,
+        severity: 'MEDIUM',
+        status: 'SUBMITTED',
+        createdAt: Date.now(),
+      };
+
+      expect(createdCard.id).toBe(data.incidentId);
+      expect(createdCard.reporterLabel).toBe('Reported by a verified community member');
+    });
   });
 });

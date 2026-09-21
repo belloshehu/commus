@@ -77,18 +77,20 @@ function ReportPageContent() {
           <VoiceReportWizard
             onCompleted={(incidentId) => {
               console.log('[ReportIncidentPage] Voice report created:', incidentId);
+              router.push('/?tab=incidents');
             }}
             onCancel={() => {
-              router.push('/');
+              router.push('/?tab=incidents');
             }}
           />
         ) : (
           <IncidentReportWizard
             onCompleted={(incidentId) => {
               console.log('[ReportIncidentPage] Text report created:', incidentId);
+              router.push('/?tab=incidents');
             }}
             onCancel={() => {
-              router.push('/');
+              router.push('/?tab=incidents');
             }}
           />
         )}

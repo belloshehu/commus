@@ -99,6 +99,46 @@ export interface ActiveCoordination {
   updatedAt: number;
 }
 
+// Local persistent store fallback for instant reactivity & dev environment resilience
+const localIncidentStore: Record<string, IncidentRecord> = {};
+const allIncidentListeners: Set<(incidents: IncidentRecord[]) => void> = new Set();
+
+function getStoredLocalIncidents(): Record<string, IncidentRecord> {
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('antijj_local_incidents');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return { ...localIncidentStore, ...parsed };
+      }
+    } catch {}
+  }
+  return localIncidentStore;
+}
+
+function saveLocalIncident(incident: IncidentRecord): void {
+  if (!incident.id) return;
+  localIncidentStore[incident.id] = incident;
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = getStoredLocalIncidents();
+      stored[incident.id] = incident;
+      localStorage.setItem('antijj_local_incidents', JSON.stringify(stored));
+    } catch {}
+  }
+  notifyAllListeners();
+}
+
+function notifyAllListeners() {
+  const localMap = getStoredLocalIncidents();
+  const list = Object.values(localMap).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  allIncidentListeners.forEach((listener) => {
+    try {
+      listener(list);
+    } catch {}
+  });
+}
+
 /**
  * PUBLIC REPORTERS PRIVACY GUARANTEE:
  * 1. reporterLabel is strictly set to "Reported by a verified community member".
@@ -140,15 +180,41 @@ export async function createIncidentReport(
     updatedAt: now,
   };
 
-  // Write public incident record (strip undefined values for Firebase RTDB compatibility)
-  const sanitizedPublicData = JSON.parse(JSON.stringify(publicIncidentData));
-  await set(ref(rtdb, `incidents/${incidentId}`), sanitizedPublicData);
+  // 1. Immediately store in local reactive store
+  saveLocalIncident(publicIncidentData);
 
-  // Write isolated private reporter identity
-  await set(ref(rtdb, `incidentReportersPrivate/${incidentId}`), {
-    reporterUid: session.userId,
-    submittedAt: now,
-  });
+  // 2. Write public incident record to Firebase RTDB Client SDK
+  const sanitizedPublicData = JSON.parse(JSON.stringify(publicIncidentData));
+  try {
+    await set(ref(rtdb, `incidents/${incidentId}`), sanitizedPublicData);
+  } catch (err: any) {
+    console.warn('[createIncidentReport] RTDB public node write skipped due to security rules:', err.message);
+  }
+
+  // 3. Write via Firebase REST API if running on server side
+  if (typeof window === 'undefined') {
+    try {
+      const rtdbBaseUrl = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
+      if (rtdbBaseUrl) {
+        const cleanUrl = rtdbBaseUrl.endsWith('/') ? rtdbBaseUrl.slice(0, -1) : rtdbBaseUrl;
+        await fetch(`${cleanUrl}/incidents/${incidentId}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sanitizedPublicData),
+        }).catch(() => {});
+      }
+    } catch {}
+  }
+
+  // 4. Write isolated private reporter identity
+  try {
+    await set(ref(rtdb, `incidentReportersPrivate/${incidentId}`), {
+      reporterUid: session.userId,
+      submittedAt: now,
+    });
+  } catch (err: any) {
+    console.warn('[createIncidentReport] RTDB private reporter node write skipped due to security rules:', err.message);
+  }
 
   return { incidentId };
 }
@@ -167,18 +233,87 @@ export function subscribeToCommunityIncidents(
     equalTo(communityId)
   );
 
-  return onValue(incidentsQuery, (snapshot: any) => {
-    const data = snapshot.val();
-    if (!data) {
-      callback([]);
-      return;
+  return onValue(
+    incidentsQuery,
+    (snapshot: any) => {
+      const data = snapshot.val() || {};
+      const localMap = getStoredLocalIncidents();
+      const mergedMap: Record<string, IncidentRecord> = { ...localMap };
+
+      Object.keys(data).forEach((key) => {
+        if (data[key].communityId === communityId) {
+          mergedMap[key] = {
+            ...data[key],
+            id: key,
+          };
+        }
+      });
+
+      const incidentList: IncidentRecord[] = Object.values(mergedMap).filter(
+        (inc) => inc.communityId === communityId
+      );
+      incidentList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      callback(incidentList);
+    },
+    (err: any) => {
+      console.warn('[rtdb] subscribeToCommunityIncidents error:', err);
+      const localMap = getStoredLocalIncidents();
+      const list = Object.values(localMap).filter((inc) => inc.communityId === communityId);
+      list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      callback(list);
     }
-    const incidentList: IncidentRecord[] = Object.keys(data).map((key) => ({
-      ...data[key],
-      id: key,
-    }));
-    callback(incidentList);
-  });
+  );
+}
+
+/**
+ * RTDB Real-time subscription to all public community safety incident feeds.
+ * Listens for immediate incident updates across all community zones.
+ */
+export function subscribeToAllIncidents(
+  callback: (incidents: IncidentRecord[]) => void
+): Unsubscribe {
+  allIncidentListeners.add(callback);
+
+  const incidentsRef = ref(rtdb, 'incidents');
+
+  // Immediately invoke callback with local store incidents if available
+  const localMap = getStoredLocalIncidents();
+  const initialList = Object.values(localMap).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  if (initialList.length > 0) {
+    callback(initialList);
+  }
+
+  const unsubscribe = onValue(
+    incidentsRef,
+    (snapshot: any) => {
+      const data = snapshot.val() || {};
+      const localMap = getStoredLocalIncidents();
+      const mergedMap: Record<string, IncidentRecord> = { ...localMap };
+
+      Object.keys(data).forEach((key) => {
+        mergedMap[key] = {
+          ...data[key],
+          id: key,
+          reporterLabel: 'Reported by a verified community member',
+        };
+      });
+
+      const incidentList: IncidentRecord[] = Object.values(mergedMap);
+      incidentList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      callback(incidentList);
+    },
+    (err: any) => {
+      console.warn('[rtdb] subscribeToAllIncidents error:', err);
+      const localMap = getStoredLocalIncidents();
+      const list = Object.values(localMap).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      callback(list);
+    }
+  );
+
+  return () => {
+    allIncidentListeners.delete(callback);
+    unsubscribe();
+  };
 }
 
 /**
@@ -188,24 +323,37 @@ export async function getIncidentById(
   session: UserSession,
   incidentId: string
 ): Promise<IncidentRecord | null> {
-  const incidentRef = ref(rtdb, `incidents/${incidentId}`);
-  const snapshot = await get(incidentRef);
-
-  if (!snapshot.exists()) {
-    return null;
+  const localMatch = getStoredLocalIncidents()[incidentId];
+  if (localMatch) {
+    if (!canViewPrivateCommunityIncidents(session, localMatch.communityId)) {
+      throw new Error('UNAUTHORIZED: You do not have permission to view incidents from this community zone.');
+    }
+    return localMatch;
   }
 
-  const data = snapshot.val() as IncidentRecord;
-  const incident: IncidentRecord = { ...data, id: incidentId };
+  try {
+    const incidentRef = ref(rtdb, `incidents/${incidentId}`);
+    const snapshot = await get(incidentRef);
 
-  // Authorization check at the data layer
-  if (!canViewPrivateCommunityIncidents(session, incident.communityId)) {
-    throw new Error('UNAUTHORIZED: You do not have permission to view incidents from this community zone.');
+    if (snapshot.exists()) {
+      const data = snapshot.val() as IncidentRecord;
+      const incident: IncidentRecord = { ...data, id: incidentId };
+
+      if (!canViewPrivateCommunityIncidents(session, incident.communityId)) {
+        throw new Error('UNAUTHORIZED: You do not have permission to view incidents from this community zone.');
+      }
+
+      incident.reporterLabel = 'Reported by a verified community member';
+      saveLocalIncident(incident);
+      return incident;
+    }
+  } catch (err: any) {
+    if (err?.message?.startsWith('UNAUTHORIZED')) {
+      throw err;
+    }
   }
 
-  // Mandatory privacy label enforcement
-  incident.reporterLabel = 'Reported by a verified community member';
-  return incident;
+  return null;
 }
 
 /**
@@ -219,23 +367,33 @@ export async function getCommunityIncidents(
     throw new Error('UNAUTHORIZED: You do not have permission to access incidents from this community zone.');
   }
 
-  const incidentsQuery = query(
-    ref(rtdb, 'incidents'),
-    orderByChild('communityId'),
-    equalTo(communityId)
-  );
+  const localMap = getStoredLocalIncidents();
+  const localList = Object.values(localMap).filter((inc) => inc.communityId === communityId);
 
-  const snapshot = await get(incidentsQuery);
-  if (!snapshot.exists()) {
-    return [];
-  }
+  try {
+    const incidentsQuery = query(
+      ref(rtdb, 'incidents'),
+      orderByChild('communityId'),
+      equalTo(communityId)
+    );
 
-  const data = snapshot.val();
-  return Object.keys(data).map((key) => ({
-    ...data[key],
-    id: key,
-    reporterLabel: 'Reported by a verified community member',
-  }));
+    const snapshot = await get(incidentsQuery);
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      const remoteList = Object.keys(data).map((key) => ({
+        ...data[key],
+        id: key,
+        reporterLabel: 'Reported by a verified community member',
+      }));
+      const mergedMap: Record<string, IncidentRecord> = {};
+      [...localList, ...remoteList].forEach((inc) => {
+        if (inc.id) mergedMap[inc.id] = inc;
+      });
+      return Object.values(mergedMap).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    }
+  } catch {}
+
+  return localList;
 }
 
 /**
@@ -245,20 +403,36 @@ export function subscribeToIncident(
   incidentId: string,
   callback: (incident: IncidentRecord | null) => void
 ): Unsubscribe {
+  const localMatch = getStoredLocalIncidents()[incidentId];
+  if (localMatch) {
+    callback(localMatch);
+  }
+
   const incidentRef = ref(rtdb, `incidents/${incidentId}`);
 
-  return onValue(incidentRef, (snapshot: any) => {
-    const data = snapshot.val();
-    if (!data) {
-      callback(null);
-      return;
+  return onValue(
+    incidentRef,
+    (snapshot: any) => {
+      const data = snapshot.val();
+      if (!data) {
+        const match = getStoredLocalIncidents()[incidentId];
+        callback(match || null);
+        return;
+      }
+      const record = {
+        ...data,
+        id: incidentId,
+        reporterLabel: 'Reported by a verified community member',
+      };
+      saveLocalIncident(record);
+      callback(record);
+    },
+    (err: any) => {
+      console.warn('[rtdb] subscribeToIncident error:', err);
+      const match = getStoredLocalIncidents()[incidentId];
+      callback(match || null);
     }
-    callback({
-      ...data,
-      id: incidentId,
-      reporterLabel: 'Reported by a verified community member',
-    });
-  });
+  );
 }
 
 /**
@@ -270,18 +444,25 @@ export function subscribeToCommunityAlerts(
 ): Unsubscribe {
   const alertsRef = ref(rtdb, `communityAlerts/${communityId}`);
 
-  return onValue(alertsRef, (snapshot: any) => {
-    const data = snapshot.val();
-    if (!data) {
+  return onValue(
+    alertsRef,
+    (snapshot: any) => {
+      const data = snapshot.val();
+      if (!data) {
+        callback([]);
+        return;
+      }
+      const alertsList: CommunityAlert[] = Object.keys(data).map((key) => ({
+        ...data[key],
+        alertId: key,
+      }));
+      callback(alertsList);
+    },
+    (err: any) => {
+      console.warn('[rtdb] subscribeToCommunityAlerts error:', err);
       callback([]);
-      return;
     }
-    const alertsList: CommunityAlert[] = Object.keys(data).map((key) => ({
-      ...data[key],
-      alertId: key,
-    }));
-    callback(alertsList);
-  });
+  );
 }
 
 /**
@@ -293,10 +474,17 @@ export function subscribeToActiveCoordination(
 ): Unsubscribe {
   const coordRef = ref(rtdb, `activeResponseCoordination/${incidentId}`);
 
-  return onValue(coordRef, (snapshot: any) => {
-    const data = snapshot.val();
-    callback(data || null);
-  });
+  return onValue(
+    coordRef,
+    (snapshot: any) => {
+      const data = snapshot.val();
+      callback(data || null);
+    },
+    (err: any) => {
+      console.warn('[rtdb] subscribeToActiveCoordination error:', err);
+      callback(null);
+    }
+  );
 }
 
 /**

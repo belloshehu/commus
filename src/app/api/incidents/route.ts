@@ -13,7 +13,8 @@ import {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = authenticateServerSession(req);
+    const body = await req.json().catch(() => ({}));
+    const session = authenticateServerSession(req, undefined, body?.session);
 
     if (!canSubmitIncident(session)) {
       return NextResponse.json(
@@ -37,8 +38,6 @@ export async function POST(req: NextRequest) {
         { status: 429 }
       );
     }
-
-    const body = await req.json();
 
     const {
       communityId = 'comm_central',

@@ -13,6 +13,7 @@ interface IncidentFeedProps {
   onViewDetails?: (id: string) => void;
   onEscalate?: (id: string) => void;
   onVote?: (id: string, voteType: 'UP' | 'DOWN') => void;
+  onRequestReport?: () => void;
 }
 
 export const filterIncidents = (
@@ -72,6 +73,7 @@ export const IncidentFeed: React.FC<IncidentFeedProps> = ({
   onViewDetails,
   onEscalate,
   onVote,
+  onRequestReport,
 }) => {
   const filtered = filterIncidents(incidents, filters);
 
@@ -80,10 +82,18 @@ export const IncidentFeed: React.FC<IncidentFeedProps> = ({
   ).length;
 
   if (filtered.length === 0) {
+    const isTotalEmpty = incidents.length === 0;
+
     return (
       <EmptyState
-        title="No matching safety incidents found"
-        description="Try adjusting your danger level, time range, or keyword search query filters."
+        title={isTotalEmpty ? "No safety incident reports posted yet" : "No matching safety incidents found"}
+        description={
+          isTotalEmpty
+            ? "Your community safety feed is currently clear. Be the first to alert members if a safety concern or hazard arises."
+            : "Try adjusting your danger level, time range, or keyword search query filters."
+        }
+        actionLabel={onRequestReport ? "Report Incident" : undefined}
+        onAction={onRequestReport}
       />
     );
   }

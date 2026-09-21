@@ -66,6 +66,9 @@ const mockIncidents: IncidentCardData[] = [
 import { IncidentFilterBar, FilterState } from '@/components/dashboard/IncidentFilterBar';
 import { IncidentFeed, filterIncidents } from '@/components/dashboard/IncidentFeed';
 import { useRouter } from 'next/navigation';
+import { subscribeToAllIncidents, recordVote } from '@/lib/firebase/rtdb';
+import { VoteConfirmationModal } from '@/components/ui/VoteConfirmationModal';
+import { useAuth } from '@/context/AuthContext';
 
 const mockCommunities = [
   { id: 'comm_central', name: 'Downtown Central District', isPrivate: true },
@@ -75,10 +78,26 @@ const mockCommunities = [
 
 export default function HomePage() {
   const router = useRouter();
+  const { session } = useAuth();
   const [locale, setLocale] = useState<'en' | 'ar'>('en');
   const [activeTab, setActiveTab] = useState('incidents');
   const [selectedEscalateId, setSelectedEscalateId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Real-time Database Incidents State
+  const [incidents, setIncidents] = useState<IncidentCardData[]>(mockIncidents);
+  const [isLoadingIncidents, setIsLoadingIncidents] = useState(true);
+
+  // Vote Confirmation Modal State
+  const [voteModal, setVoteModal] = useState<{
+    isOpen: boolean;
+    incidentId: string | null;
+    voteType: 'UP' | 'DOWN';
+  }>({
+    isOpen: false,
+    incidentId: null,
+    voteType: 'UP',
+  });
 
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: '',
@@ -89,7 +108,54 @@ export default function HomePage() {
     categoryFilter: 'ALL',
   });
 
-  const filteredIncidents = filterIncidents(mockIncidents, filters);
+  // Subscribe to real-time incident reports from Firebase Realtime Database
+  React.useEffect(() => {
+    setIsLoadingIncidents(true);
+    let isMounted = true;
+
+    // Safety fallback timeout: if RTDB connection hangs or takes > 1.5s, finish loading so UI doesn't freeze
+    const fallbackTimer = setTimeout(() => {
+      if (isMounted) {
+        setIsLoadingIncidents(false);
+      }
+    }, 1500);
+
+    const unsubscribe = subscribeToAllIncidents((liveRecords) => {
+      clearTimeout(fallbackTimer);
+      if (!isMounted) return;
+
+      if (liveRecords && liveRecords.length > 0) {
+        const mappedList: IncidentCardData[] = liveRecords.map((rec) => ({
+          id: rec.id || 'inc_unknown',
+          communityId: rec.communityId || 'comm_central',
+          category: rec.category,
+          title: rec.title,
+          description: rec.description,
+          reporterLabel: 'Reported by a verified community member',
+          blurredLocation: rec.blurredLocation,
+          severity: rec.dangerLevel || (rec.severity as any) || 'MEDIUM',
+          status: rec.status,
+          upvotes: rec.upvotes || 0,
+          downvotes: rec.downvotes || 0,
+          authenticityStatus: rec.authenticityStatus || 'UNREVIEWED',
+          createdAt: rec.createdAt,
+        }));
+        setIncidents(mappedList);
+      } else {
+        // If DB has zero records, provide empty list so EmptyState is rendered cleanly
+        setIncidents([]);
+      }
+      setIsLoadingIncidents(false);
+    });
+
+    return () => {
+      isMounted = false;
+      clearTimeout(fallbackTimer);
+      unsubscribe();
+    };
+  }, []);
+
+  const filteredIncidents = filterIncidents(incidents, filters);
 
   const [isMethodModalOpen, setIsMethodModalOpen] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<'wizard' | 'voice'>('wizard');
@@ -98,6 +164,45 @@ export default function HomePage() {
     setSelectedMethod(method);
     setIsMethodModalOpen(false);
     setIsSubmitting(true);
+  };
+
+  const handleReportSubmitted = (incidentId: string, createdIncident?: any) => {
+    // 1. Close the report wizard drawer immediately
+    setIsSubmitting(false);
+
+    // 2. Switch immediately to the Incident Feed tab
+    setActiveTab('incidents');
+
+    // 3. Reset filters so the new report is visible
+    setFilters({
+      searchQuery: '',
+      dangerLevel: 'ALL',
+      communityId: 'comm_central',
+      timeFilter: 'ALL',
+      statusFilter: 'ALL',
+      categoryFilter: 'ALL',
+    });
+
+    // 4. Prepend newly submitted report into feed state immediately for instant feedback
+    if (createdIncident) {
+      setIncidents((prev) => {
+        const exists = prev.some((inc) => inc.id === createdIncident.id);
+        if (exists) return prev;
+        return [createdIncident as IncidentCardData, ...prev];
+      });
+    }
+  };
+
+  const handleConfirmVote = async () => {
+    if (!voteModal.incidentId) return;
+
+    try {
+      await recordVote(session, voteModal.incidentId, voteModal.voteType);
+    } catch (err) {
+      console.warn('[HomePage] Voting action failed:', err);
+    } finally {
+      setVoteModal({ isOpen: false, incidentId: null, voteType: 'UP' });
+    }
   };
 
   return (
@@ -126,6 +231,14 @@ export default function HomePage() {
           onSelectMethod={handleSelectMethod}
         />
 
+        {/* Voting Confirmation Explanation Modal */}
+        <VoteConfirmationModal
+          isOpen={voteModal.isOpen}
+          voteType={voteModal.voteType}
+          onClose={() => setVoteModal({ isOpen: false, incidentId: null, voteType: 'UP' })}
+          onConfirm={handleConfirmVote}
+        />
+
         {/* Header Title Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
           <div>
@@ -133,7 +246,7 @@ export default function HomePage() {
               <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
                 Community Safety Dashboard
               </h1>
-              <Badge variant="synthetic">SYNTHETIC DATA</Badge>
+              <Badge variant="synthetic">LIVE RTDB FEED</Badge>
             </div>
             <p className="text-xs text-slate-400 mt-1">
               Realtime early-warning monitoring & auditable authority escalation portal
@@ -161,12 +274,18 @@ export default function HomePage() {
               totalResultsCount={filteredIncidents.length}
             />
 
-            <IncidentFeed
-              incidents={mockIncidents}
-              filters={filters}
-              onViewDetails={(id) => router.push(`/incidents/${id}`)}
-              onEscalate={(id) => setSelectedEscalateId(id)}
-            />
+            {isLoadingIncidents ? (
+              <LoadingState label="Connecting to Realtime Safety Database..." />
+            ) : (
+              <IncidentFeed
+                incidents={incidents}
+                filters={filters}
+                onViewDetails={(id) => router.push(`/incidents/${id}`)}
+                onEscalate={(id) => setSelectedEscalateId(id)}
+                onVote={(id, voteType) => setVoteModal({ isOpen: true, incidentId: id, voteType })}
+                onRequestReport={() => setIsMethodModalOpen(true)}
+              />
+            )}
           </div>
         )}
 
@@ -317,16 +436,12 @@ export default function HomePage() {
           <div className="py-2">
             {selectedMethod === 'voice' ? (
               <VoiceReportWizard
-                onCompleted={() => {
-                  setIsSubmitting(false);
-                }}
+                onCompleted={handleReportSubmitted}
                 onCancel={() => setIsSubmitting(false)}
               />
             ) : (
               <IncidentReportWizard
-                onCompleted={() => {
-                  setIsSubmitting(false);
-                }}
+                onCompleted={handleReportSubmitted}
                 onCancel={() => setIsSubmitting(false)}
               />
             )}
