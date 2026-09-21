@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Alert } from '@/components/ui/Alert';
 import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
+import { ReferralSection } from '@/components/profile/ReferralSection';
 import { User, Shield, Key, MapPin, Trash2, LogOut } from 'lucide-react';
 
 export default function ProfilePage() {
@@ -105,6 +106,13 @@ export default function ProfilePage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Member Referral & Network Growth Section */}
+          <ReferralSection
+            userId={session.userId || user?.uid || 'usr_citizen'}
+            pseudonymId={session.pseudonymId}
+            userEmail={user?.email || undefined}
+          />
 
           {/* Account Deletion Card */}
           <Card variant="danger">

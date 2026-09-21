@@ -14,6 +14,7 @@ import {
   deleteUserAccount,
 } from '@/lib/firebase/auth';
 import { UserSession } from '@/lib/auth';
+import { registerReferral } from '@/lib/referrals';
 
 interface AuthContextType {
   user: FirebaseUser | null;
@@ -52,12 +53,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Capture ?ref= or ?inviteCode= URL parameter on app mount
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const refCode = params.get('ref') || params.get('inviteCode');
+      if (refCode) {
+        sessionStorage.setItem('antijj_active_ref_code', refCode.trim().toUpperCase());
+      }
+    }
+
     const unsubscribe = subscribeToAuthState(async (fbUser) => {
       setUser(fbUser);
       if (fbUser) {
         try {
           const profileData = await syncUserProfileNode(fbUser);
           setProfile(profileData);
+
+          // Auto-register pending referral if code is active
+          if (typeof window !== 'undefined') {
+            const pendingRef = sessionStorage.getItem('antijj_active_ref_code');
+            if (pendingRef) {
+              registerReferral(pendingRef, fbUser.uid, `pseudo_${fbUser.uid.slice(0, 8)}`).then(
+                ({ success }) => {
+                  if (success) {
+                    sessionStorage.removeItem('antijj_active_ref_code');
+                  }
+                }
+              );
+            }
+          }
         } catch (err) {
           console.error('[AuthContext] Failed to sync profile node:', err);
           setProfile(null);
