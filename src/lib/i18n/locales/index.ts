@@ -2,6 +2,7 @@ import { SupportedLocale, LocaleMetadata, TranslationSchema } from '../types';
 import { en } from './en';
 import { ar } from './ar';
 import { fr } from './fr';
+import { pt } from './pt';
 import { ha } from './ha';
 import { yo } from './yo';
 import { pcm } from './pcm';
@@ -12,6 +13,7 @@ export const LOCALES_METADATA: Record<SupportedLocale, LocaleMetadata> = {
   en: { code: 'en', nativeName: 'English', englishName: 'English', dir: 'ltr', flagEmoji: '🇬🇧' },
   ar: { code: 'ar', nativeName: 'العربية', englishName: 'Arabic', dir: 'rtl', flagEmoji: '🇸🇦' },
   fr: { code: 'fr', nativeName: 'Français', englishName: 'French', dir: 'ltr', flagEmoji: '🇫🇷' },
+  pt: { code: 'pt', nativeName: 'Português', englishName: 'Portuguese', dir: 'ltr', flagEmoji: '🇵🇹' },
   ha: { code: 'ha', nativeName: 'Harshen Hausa', englishName: 'Hausa', dir: 'ltr', flagEmoji: '🇳🇬' },
   yo: { code: 'yo', nativeName: 'Èdè Yorùbá', englishName: 'Yoruba', dir: 'ltr', flagEmoji: '🇳🇬' },
   pcm: { code: 'pcm', nativeName: 'Naija Pidgin', englishName: 'Nigerian Pidgin', dir: 'ltr', flagEmoji: '🇳🇬' },
@@ -23,6 +25,7 @@ export const DICTIONARIES: Record<SupportedLocale, TranslationSchema> = {
   en,
   ar,
   fr,
+  pt,
   ha,
   yo,
   pcm,

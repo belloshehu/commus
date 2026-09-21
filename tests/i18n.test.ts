@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { LOCALES_METADATA, DICTIONARIES } from '../src/lib/i18n/locales';
 import { SupportedLocale } from '../src/lib/i18n/types';
 
-describe('Antijj Internationalization (i18n) Framework Suite', () => {
-  const supportedLocales: SupportedLocale[] = ['en', 'ar', 'fr', 'ha', 'yo', 'pcm', 'sw', 'ig'];
+describe('Commus Internationalization (i18n) Framework Suite', () => {
+  const supportedLocales: SupportedLocale[] = ['en', 'ar', 'fr', 'pt', 'ha', 'yo', 'pcm', 'sw', 'ig'];
 
-  it('supports all 8 required languages with valid metadata and flags', () => {
+  it('supports all 9 required languages with valid metadata and flags', () => {
     supportedLocales.forEach((code) => {
       const meta = LOCALES_METADATA[code];
       expect(meta).toBeDefined();
@@ -17,10 +17,11 @@ describe('Antijj Internationalization (i18n) Framework Suite', () => {
     });
   });
 
-  it('correctly sets direction to RTL for Arabic (ar) and LTR for all other 7 languages', () => {
+  it('correctly sets direction to RTL for Arabic (ar) and LTR for all other 8 languages including Portuguese', () => {
     expect(LOCALES_METADATA.ar.dir).toBe('rtl');
     expect(LOCALES_METADATA.en.dir).toBe('ltr');
     expect(LOCALES_METADATA.fr.dir).toBe('ltr');
+    expect(LOCALES_METADATA.pt.dir).toBe('ltr');
     expect(LOCALES_METADATA.ha.dir).toBe('ltr');
     expect(LOCALES_METADATA.yo.dir).toBe('ltr');
     expect(LOCALES_METADATA.pcm.dir).toBe('ltr');

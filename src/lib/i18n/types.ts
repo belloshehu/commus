@@ -1,4 +1,4 @@
-export type SupportedLocale = 'en' | 'ar' | 'fr' | 'ha' | 'yo' | 'pcm' | 'sw' | 'ig';
+export type SupportedLocale = 'en' | 'ar' | 'fr' | 'pt' | 'ha' | 'yo' | 'pcm' | 'sw' | 'ig';
 
 export type TextDirection = 'ltr' | 'rtl';
 
@@ -18,6 +18,7 @@ export interface NavTranslations {
   alerts: string;
   safetyGuidance: string;
   authorityDispatch: string;
+  about?: string;
 }
 
 export interface CommonTranslations {
