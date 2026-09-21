@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Map, Bell, Shield, Radio, ChevronRight, Building2, BookOpen, ShieldAlert } from 'lucide-react';
+import { Activity, Bell, Shield, Radio, ChevronRight, BookOpen, ShieldAlert } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/context';
 
 export interface NavItem {
@@ -30,23 +30,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badgeColor: 'bg-emerald-950 text-emerald-300 border-emerald-800',
     },
     {
-      id: 'communities',
-      label: t('nav.joinCommunity'),
-      icon: <Building2 className="w-4 h-4" />,
-      badge: '1-Click',
-      badgeColor: 'bg-sky-950 text-sky-300 border-sky-800',
-    },
-    {
       id: 'education',
       label: t('nav.educationBadges'),
       icon: <BookOpen className="w-4 h-4" />,
       badge: 'Badges',
       badgeColor: 'bg-purple-950 text-purple-300 border-purple-800',
-    },
-    {
-      id: 'map',
-      label: t('nav.responseMap'),
-      icon: <Map className="w-4 h-4" />,
     },
     {
       id: 'alerts',

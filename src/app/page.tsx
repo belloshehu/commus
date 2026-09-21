@@ -289,25 +289,6 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Tab Content 2: Active Response Map Placeholder */}
-        {activeTab === 'map' && (
-          <div className="space-y-6">
-            <Card variant="highlight">
-              <CardHeader>
-                <CardTitle>Geohash Fuzzed Response Grid</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Alert type="info">
-                  Public and community views display fuzzed Geohash coordinates (~1-3km blur radius) to protect reporter safety. Precise coordinates are encrypted using AES-256-GCM.
-                </Alert>
-                <div className="h-64 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center font-mono text-xs text-sky-400">
-                  🗺️ [Geohash Vector Map Canvas Placeholder - Zone dr5ru]
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
         {/* Tab Content 3: Community Alerts */}
         {activeTab === 'alerts' && (
           <div className="space-y-6">

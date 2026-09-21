@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Map, Bell, Shield, Radio, Building2 } from 'lucide-react';
+import { Activity, Bell, Shield, Radio } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/context';
 
 export interface MobileNavProps {
@@ -15,8 +15,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({
 
   const items = [
     { id: 'incidents', label: t('nav.incidentFeed'), icon: <Activity className="w-5 h-5" /> },
-    { id: 'communities', label: t('nav.joinCommunity'), icon: <Building2 className="w-5 h-5" /> },
-    { id: 'map', label: t('nav.responseMap'), icon: <Map className="w-5 h-5" /> },
     { id: 'alerts', label: t('nav.alerts'), icon: <Bell className="w-5 h-5" /> },
     { id: 'guidance', label: t('nav.safetyGuidance'), icon: <Shield className="w-5 h-5" /> },
     { id: 'dispatch', label: t('nav.authorityDispatch'), icon: <Radio className="w-5 h-5" /> },
