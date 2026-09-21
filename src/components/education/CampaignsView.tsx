@@ -554,7 +554,7 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({
                 {joinedModalCampaign.badgeName}
               </div>
               <p className="text-[11px] text-slate-400">
-                Recorded in Firebase Realtime Database & added to your verified profile badges.
+                Recorded on the verified community ledger & added to your profile badges.
               </p>
             </div>
 

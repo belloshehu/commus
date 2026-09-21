@@ -69,8 +69,8 @@ export const ReferralSection: React.FC<ReferralSectionProps> = ({
 
   const handleShare = async () => {
     const shareData = {
-      title: 'Join Antijj Safety Network',
-      text: 'Join me on Antijj Community Safety Network to protect our neighborhood with real-time hazard alerts.',
+      title: 'Join Commus Safety Network',
+      text: 'Join me on Commus Community Safety Network to protect our neighborhood with real-time hazard alerts.',
       url: stats.referralLink,
     };
 
@@ -116,7 +116,7 @@ export const ReferralSection: React.FC<ReferralSectionProps> = ({
                 </Badge>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
-                Invite friends and neighbors to join Antijj to strengthen neighborhood safety.
+                Invite friends and neighbors to join Commus to strengthen neighborhood safety.
               </p>
             </div>
           </div>

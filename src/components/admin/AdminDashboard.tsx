@@ -281,7 +281,7 @@ export function AdminDashboard({ session }: AdminDashboardProps) {
           <Lock className="w-12 h-12 text-red-400 mx-auto mb-3" />
           <h2 className="text-xl font-bold mb-2">Access Denied: SYSTEM_ADMIN Required</h2>
           <p className="text-sm text-red-300/80">
-            You do not have administrative credentials to view the Antijj System Control Panel.
+            You do not have administrative credentials to view the Commus System Control Panel.
           </p>
         </div>
       </div>
@@ -298,7 +298,7 @@ export function AdminDashboard({ session }: AdminDashboardProps) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-white tracking-wide">Antijj System Administration</h1>
+              <h1 className="text-2xl font-bold text-white tracking-wide">Commus System Administration</h1>
               <span className="px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full">
                 System Admin
               </span>

@@ -20,7 +20,7 @@ export interface TranslationDictionary {
 
 export const translations: Record<Locale, TranslationDictionary> = {
   en: {
-    appName: "Antijj",
+    appName: "Commus",
     tagline: "Privacy-Preserving Community Safety Platform",
     safetyBannerTitle: "SAFETY FIRST: DO NOT CONFRONT CROWDS",
     safetyBannerText: "Never approach, photograph, or confront violent crowds or active hazard zones. Stay safe and seek immediate shelter.",

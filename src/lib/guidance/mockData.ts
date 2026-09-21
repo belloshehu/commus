@@ -197,10 +197,10 @@ export const INITIAL_SAFETY_GUIDES: SafetyGuide[] = [
     category: 'mob_justice',
     urgencyLevel: 'CRITICAL',
     summary: 'Non-confrontational safety guidelines during civil unrest, mob action, and illegal jungle justice attempts.',
-    description: 'Antijj operates under strict Anti-Vigilantism principles. Mob justice is illegal, unpredictable, and frequently harms innocent bystanders. Citizens must prioritize non-confrontational shelter and police intervention.',
+    description: 'Commus operates under strict Anti-Vigilantism principles. Mob justice is illegal, unpredictable, and frequently harms innocent bystanders. Citizens must prioritize non-confrontational shelter and police intervention.',
     doList: [
       'Retreat immediately into a secure indoor building or vehicle away from angry crowds.',
-      'Report the incident location and crowd size through Antijj anonymized reporting.',
+      'Report the incident location and crowd size through Commus anonymized reporting.',
       'Alert official police emergency dispatch to send anti-riot security personnel.',
       'Encourage fellow community members to allow law enforcement to handle suspects.'
     ],
@@ -219,7 +219,7 @@ export const INITIAL_SAFETY_GUIDES: SafetyGuide[] = [
         type: 'image',
         url: 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=1200&q=80',
         title: 'Non-Confrontational UX & Anti-Vigilantism Principles',
-        caption: 'Antijj strictly prohibits vigilante coordination and mob action.'
+        caption: 'Commus strictly prohibits vigilante coordination and mob action.'
       },
       {
         id: 'med_mob_audio',

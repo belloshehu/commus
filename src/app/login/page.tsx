@@ -145,7 +145,7 @@ export default function LoginPage() {
 
           <CardFooter className="justify-center">
             <span className="text-xs text-slate-400">
-              New to Antijj?{' '}
+              New to Commus?{' '}
               <Link href="/register" className="text-sky-400 font-semibold hover:underline">
                 Create an account
               </Link>

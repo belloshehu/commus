@@ -81,7 +81,7 @@ export const pcm: TranslationSchema = {
   },
   system: {
     nonConfrontationPolicy: 'No Fight Policy',
-    nonConfrontationDesc: 'Antijj dey for early warning alert. Nobody should try jungle justice or fight mob.',
+    nonConfrontationDesc: 'Commus dey for early warning alert. Nobody should try jungle justice or fight mob.',
     fuzzedLocationNotice: 'Public view de blur exact map location to keep reporter safe.',
     reporterPrivacyNotice: 'Reported by a verified community member',
     auditLogNotice: 'Reports get solid SHA-256 digital proof lock.',

@@ -81,7 +81,7 @@ export const yo: TranslationSchema = {
   },
   system: {
     nonConfrontationPolicy: 'Ilana Lodi si Ija',
-    nonConfrontationDesc: 'Antijj jẹ ero ikilọ kutukutu. Mase gbiyanju lati sọ ara rẹ di onidajo adugbo.',
+    nonConfrontationDesc: 'Commus jẹ ero ikilọ kutukutu. Mase gbiyanju lati sọ ara rẹ di onidajo adugbo.',
     fuzzedLocationNotice: 'Awọn ipo ti a fihan fun gbogbo eniyan wa ni bo lati daabobo aabo eni ti o fi iroyin ranse.',
     reporterPrivacyNotice: 'Ti fi ránṣẹ́ nipasẹ ọmọ ẹgbẹ àwùjọ ti a fọwọ́sí',
     auditLogNotice: 'Fi ránṣẹ́ pẹ̀lú àwọn àkọsílẹ̀ SHA-256 ti kò ṣe é yi pada.',

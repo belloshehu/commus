@@ -81,7 +81,7 @@ export const ha: TranslationSchema = {
   },
   system: {
     nonConfrontationPolicy: 'Manufar Guje wa Faɗa',
-    nonConfrontationDesc: 'Antijj manhaja ce ta gargadi da wuri. Kada ka taɓa yunkurin ɗaukar doka a hannunka.',
+    nonConfrontationDesc: 'Commus manhaja ce ta gargadi da wuri. Kada ka taɓa yunkurin ɗaukar doka a hannunka.',
     fuzzedLocationNotice: 'Ana voye ainihin wurin da mutum yake domin kiyaye tsaron mai rahoton.',
     reporterPrivacyNotice: 'Wani mamba na al\'umma mai inganci ne ya tura rahoton',
     auditLogNotice: 'Mika rahotanni yana adana shaidar SHA-256 mai amintattu.',

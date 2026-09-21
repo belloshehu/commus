@@ -11,12 +11,12 @@ export const PRE_SEEDED_TIPS: EducationalTip[] = [
 Never put yourself or others in physical danger to obtain photos, video, or audio evidence. Your personal safety is always the highest priority.
 
 ### Principle 2: Location Privacy
-Antijj automatically applies a 1-3km Geohash fuzzing radius on all public community feeds. Do not include identifiable personal markers or personal phone numbers in public text fields.
+Commus automatically applies a 1-3km Geohash fuzzing radius on all public community feeds. Do not include identifiable personal markers or personal phone numbers in public text fields.
 
 ### Principle 3: Objective Reporting
 Stick strictly to factual observations (what happened, time, danger level). Avoid subjective accusations or naming unverified suspects publicly to prevent mob retaliation.`,
     tags: ['Safety', 'Reporting', 'Privacy', 'Geohash'],
-    author: 'Antijj Safety Advisory Board',
+    author: 'Commus Safety Advisory Board',
     estimatedReadMinutes: 3,
     updatedAt: Date.now() - 1000 * 60 * 60 * 24 * 5,
     isPublished: true,
@@ -34,7 +34,7 @@ If an active disturbance or riot alert is triggered nearby, immediately move ind
 Do not travel towards crowd bottlenecks, active protest lines, or unverified conflict zones out of curiosity.
 
 ### Step 3: Monitor Official Updates
-Use the Antijj Community Feed and verified emergency authority hotlines (such as 112) for official escalation responses rather than unverified social media rumors.`,
+Use the Commus Community Feed and verified emergency authority hotlines (such as 112) for official escalation responses rather than unverified social media rumors.`,
     tags: ['Personal Safety', 'Alerts', 'Emergency', 'Defense'],
     author: 'National Emergency Advisory Unit',
     estimatedReadMinutes: 4,
@@ -76,7 +76,7 @@ Ensure invited members belong to your geographic area or transit corridor to mai
 ### 3. Earn the Community Builder Badge
 Inviting verified members who actively participate in community safety campaigns earns you credit towards the specialized Community Builder badge.`,
     tags: ['Community', 'Invitations', 'Network', 'Onboarding'],
-    author: 'Antijj Community Growth Team',
+    author: 'Commus Community Growth Team',
     estimatedReadMinutes: 3,
     updatedAt: Date.now() - 1000 * 60 * 60 * 24 * 2,
     isPublished: true,
@@ -88,14 +88,14 @@ Inviting verified members who actively participate in community safety campaigns
     categoryLabel: 'Community Participation',
     summary: 'How everyday citizens contribute to early warning networks without becoming vigilantes or taking the law into their own hands.',
     content: `### Non-Vigilantism Principle
-Antijj strictly prohibits mob action, public witch-hunts, or extrajudicial punishment. Community safety relies on rapid detection, transparent documentation, and official authority intervention.
+Commus strictly prohibits mob action, public witch-hunts, or extrajudicial punishment. Community safety relies on rapid detection, transparent documentation, and official authority intervention.
 
 ### How Citizens Participate Effectively:
 - Verify early warning alerts posted by neighbors.
 - Participate in organized safety awareness campaigns.
 - Share emergency hotline information (112, Police, Fire Service, NEMA).`,
     tags: ['Participation', 'Citizenship', 'Safety Culture'],
-    author: 'Antijj Ethics & Governance Panel',
+    author: 'Commus Ethics & Governance Panel',
     estimatedReadMinutes: 4,
     updatedAt: Date.now() - 1000 * 60 * 60 * 24 * 6,
     isPublished: true,
@@ -110,12 +110,12 @@ Antijj strictly prohibits mob action, public witch-hunts, or extrajudicial punis
 Set realistic goals such as "Educating 200 residents on calling 112 during theft incidents instead of resorting to mob violence."
 
 ### Step 2: Schedule & Launch
-Create the campaign in the Antijj Campaigns portal specifying start/end dates, target metrics, and detailed descriptions.
+Create the campaign in the Commus Campaigns portal specifying start/end dates, target metrics, and detailed descriptions.
 
 ### Step 3: Track Metrics & Earn Badges
 Monitor live participant numbers and completed verified actions. Successfully completing a campaign awards the Campaign Leader badge.`,
     tags: ['Campaigns', 'Leadership', 'Organization', 'Metrics'],
-    author: 'Antijj Engagement Directorate',
+    author: 'Commus Engagement Directorate',
     estimatedReadMinutes: 5,
     updatedAt: Date.now() - 1000 * 60 * 60 * 24 * 4,
     isPublished: true,
@@ -132,7 +132,7 @@ Studies show that over 40% of jungle justice victims are completely innocent ind
 ### Judicial Due Process Protects Everyone
 When a suspect is apprehended by citizens, they MUST immediately be handed over to the Nigeria Police Force or NSCDC. Extrajudicial killing or torture is murder under national law.
 
-### Antijj's Stance
+### Commus's Stance
 Mob violence is NEVER justified. Early warning alerts exist to summon legal authorities, not to assemble violent crowds.`,
     tags: ['Human Rights', 'Anti-Jungle Justice', 'Justice', 'Law'],
     author: 'Center for Human Rights & Rule of Law',

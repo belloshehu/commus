@@ -81,7 +81,7 @@ export const ar: TranslationSchema = {
   },
   system: {
     nonConfrontationPolicy: 'سياسة عدم المواجهة',
-    nonConfrontationDesc: 'منصة Antijj هي منصة إنذار مبكر. لا تقترب أبداً من المخاطر النشطة أو تحاول المشاركة في أعمال العنف الجماعي.',
+    nonConfrontationDesc: 'منصة Commus هي منصة إنذار مبكر. لا تقترب أبداً من المخاطر النشطة أو تحاول المشاركة في أعمال العنف الجماعي.',
     fuzzedLocationNotice: 'تعرض المشاهدات العامة إحداثيات مغبشة لحماية سلامة المُبلّغ.',
     reporterPrivacyNotice: 'مُبلّغ عنه بواسطة عضو مجتمعي موثق',
     auditLogNotice: 'تولد عمليات التصعيد سجلات تدقيق رقمية مشفرة SHA-256 غير قابلة للتغيير.',

@@ -86,7 +86,7 @@ export function authenticateServerSession(
   let session: UserSession | null = null;
 
   // 1. Check Authorization Bearer Token or Signed Session Header
-  const authHeader = req.headers.get('authorization') || req.headers.get('x-antijj-session-token');
+  const authHeader = req.headers.get('authorization') || req.headers.get('x-commus-session-token') || req.headers.get('x-antijj-session-token');
   if (authHeader) {
     const token = authHeader.replace(/^Bearer\s+/i, '').trim();
     session = verifySessionToken(token);

@@ -81,7 +81,7 @@ export const ig: TranslationSchema = {
   },
   system: {
     nonConfrontationPolicy: 'Akparamàgwà Na-enweghị Ọgụ',
-    nonConfrontationDesc: 'Antijj bụ nyiwe ịdọ aka na ntị snịị. E nọkatala nwaa jungle justice.',
+    nonConfrontationDesc: 'Commus bụ nyiwe ịdọ aka na ntị snịị. E nọkatala nwaa jungle justice.',
     fuzzedLocationNotice: 'Egosipụta maapụ n’ụzọ zoro ezo iji chekwaa onye ziri akụkọ.',
     reporterPrivacyNotice: 'Onye mamba ogbe enwetara nkwenye ka o ziri',
     auditLogNotice: 'Akụkọ mfee na-enwe koodu SHA-256 echekwara.',

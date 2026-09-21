@@ -9,6 +9,7 @@ export const en: TranslationSchema = {
     alerts: 'Community Alerts',
     safetyGuidance: 'Safety Guidance',
     authorityDispatch: 'Authority Dispatch',
+    about: 'About Commus',
   },
   common: {
     save: 'Save',
@@ -81,7 +82,7 @@ export const en: TranslationSchema = {
   },
   system: {
     nonConfrontationPolicy: 'Non-Confrontation Policy',
-    nonConfrontationDesc: 'Antijj is an early-warning platform. Never approach active hazards or attempt vigilante mob action.',
+    nonConfrontationDesc: 'Commus is an early-warning platform. Never approach active hazards or attempt vigilante mob action.',
     fuzzedLocationNotice: 'Public views display fuzzed Geohash coordinates (~1-3km blur radius) to protect reporter safety.',
     reporterPrivacyNotice: 'Reported by a verified community member',
     auditLogNotice: 'Escalations generate immutable SHA-256 digital audit records.',

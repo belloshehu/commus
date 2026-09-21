@@ -81,7 +81,7 @@ export const sw: TranslationSchema = {
   },
   system: {
     nonConfrontationPolicy: 'Sera ya Kutokabiliana',
-    nonConfrontationDesc: 'Antijj ni jukwaa la tahadhari ya mapema. Usijaribu kujichukulia sheria mkononi.',
+    nonConfrontationDesc: 'Commus ni jukwaa la tahadhari ya mapema. Usijaribu kujichukulia sheria mkononi.',
     fuzzedLocationNotice: 'Mitazamo ya umma inaonyesha kuratibu zilizofichwa kulinda usalama wa mripoti.',
     reporterPrivacyNotice: 'Imeripotiwa na mwanachama aliyethibitishwa wa jamii',
     auditLogNotice: 'Kupandishwa vyeo kunazalisha kumbukumbu za ukaguzi za kidijitali za SHA-256 zisizobadilika.',

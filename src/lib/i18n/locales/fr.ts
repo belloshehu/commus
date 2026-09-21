@@ -81,7 +81,7 @@ export const fr: TranslationSchema = {
   },
   system: {
     nonConfrontationPolicy: 'Politique de Non-Confrontation',
-    nonConfrontationDesc: 'Antijj est une plateforme d’alerte précoce. Ne vous approchez jamais des dangers actifs.',
+    nonConfrontationDesc: 'Commus est une plateforme d’alerte précoce. Ne vous approchez jamais des dangers actifs.',
     fuzzedLocationNotice: 'Les vues publiques affichent des coordonnées floues pour protéger le rapporteur.',
     reporterPrivacyNotice: 'Signalé par un membre vérifié de la communauté',
     auditLogNotice: 'Les escalades génèrent des registres d’audit numériques SHA-256 inaltérables.',

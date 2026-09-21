@@ -50,7 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-black text-lg tracking-tight text-white">ANTIJJ</span>
+                <span className="font-black text-lg tracking-tight text-white">COMMUS</span>
                 <Badge variant="synthetic" size="sm">DEV</Badge>
               </div>
               <p className="text-[10px] text-slate-400 uppercase tracking-widest hidden sm:block">
@@ -65,9 +65,9 @@ export const Header: React.FC<HeaderProps> = ({
           <StatusIndicator status={isRtdbConnected ? 'connected' : 'offline'} />
         </div>
 
-        {/* Right: Actions (8-Language Selector, Notifications, Auth / Profile) */}
+        {/* Right: Actions (Language Selector, Notifications, Auth / Profile) */}
         <div className="flex items-center gap-2.5">
-          {/* 8-Language Selector Dropdown */}
+          {/* Language Selector Dropdown */}
           <div className="relative flex items-center bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-300 hover:border-slate-700 transition-all">
             <Globe className="w-3.5 h-3.5 text-sky-400 mr-1.5 shrink-0" />
             <select

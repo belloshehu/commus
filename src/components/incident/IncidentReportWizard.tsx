@@ -611,7 +611,7 @@ export const IncidentReportWizard: React.FC<IncidentReportWizardProps> = ({
             <div>
               <h2 className="text-xl font-black text-white">Incident Report Created</h2>
               <p className="text-xs text-slate-400 mt-1">
-                Your report has been broadcast to community monitors and registered in RTDB.
+                Your report has been broadcast to community monitors and registered on the live safety network.
               </p>
             </div>
 
