@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Bell, Shield, Radio, ChevronRight, BookOpen } from 'lucide-react';
+import { Activity, Bell, Shield, Radio, ChevronRight, BookOpen, Info } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/context';
 
 export interface NavItem {
@@ -54,6 +54,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: <Radio className="w-4 h-4" />,
       badge: 'Audited',
       badgeColor: 'bg-red-950 text-red-300 border-red-800',
+    },
+    {
+      id: 'about',
+      label: t('nav.about') || 'About Commus',
+      icon: <Info className="w-4 h-4" />,
+      badge: 'Overview',
+      badgeColor: 'bg-cyan-950 text-cyan-300 border-cyan-800',
     },
   ];
 

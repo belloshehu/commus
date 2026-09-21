@@ -23,6 +23,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { AuthorityDirectory } from '@/components/authority/AuthorityDirectory';
 import { EducationTab } from '@/components/education/EducationTab';
 import { SafetyGuidanceTab } from '@/components/guidance/SafetyGuidanceTab';
+import { AboutTab } from '@/components/about/AboutTab';
 import { AlertTriangle, Plus, Search, ShieldCheck } from 'lucide-react';
 
 const mockIncidents: IncidentCardData[] = [];
@@ -248,7 +249,7 @@ export default function HomePage() {
               <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
                 Community Safety Dashboard
               </h1>
-              <Badge variant="synthetic">LIVE RTDB FEED</Badge>
+              <Badge variant="synthetic">LIVE SAFETY FEED</Badge>
             </div>
             <p className="text-xs text-slate-400 mt-1">
               Realtime early-warning monitoring & auditable authority escalation portal
@@ -277,7 +278,7 @@ export default function HomePage() {
             />
 
             {isLoadingIncidents ? (
-              <LoadingState label="Connecting to Realtime Safety Database..." />
+              <LoadingState label="Connecting to Live Safety Network..." />
             ) : (
               <IncidentFeed
                 incidents={incidents}
@@ -294,7 +295,7 @@ export default function HomePage() {
         {/* Tab Content 3: Community Alerts */}
         {activeTab === 'alerts' && (
           <div className="space-y-6">
-            <h2 className="text-base font-bold text-slate-100">Design System Danger Level Showcase</h2>
+            <h2 className="text-base font-bold text-slate-100">Danger Level Showcase</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <DangerLevelIndicator level="HIGH" showSafetyBanner />
               <DangerLevelIndicator level="MEDIUM" />
@@ -362,6 +363,14 @@ export default function HomePage() {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {/* Tab Content 6: About Commus Platform */}
+        {activeTab === 'about' && (
+          <AboutTab
+            onNavigateTab={setActiveTab}
+            onReportClick={() => setIsMethodModalOpen(true)}
+          />
         )}
 
         {/* Modal: Incident Submission Dialog */}

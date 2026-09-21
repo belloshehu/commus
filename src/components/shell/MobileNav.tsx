@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Bell, Shield, Radio } from 'lucide-react';
+import { Activity, Bell, Shield, Radio, Info } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/context';
 
 export interface MobileNavProps {
@@ -14,10 +14,11 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   const { t } = useTranslation();
 
   const items = [
-    { id: 'incidents', label: t('nav.incidentFeed'), icon: <Activity className="w-5 h-5" /> },
-    { id: 'alerts', label: t('nav.alerts'), icon: <Bell className="w-5 h-5" /> },
-    { id: 'guidance', label: t('nav.safetyGuidance'), icon: <Shield className="w-5 h-5" /> },
-    { id: 'dispatch', label: t('nav.authorityDispatch'), icon: <Radio className="w-5 h-5" /> },
+    { id: 'incidents', label: t('nav.incidentFeed'), icon: <Activity className="w-4 h-4" /> },
+    { id: 'alerts', label: t('nav.alerts'), icon: <Bell className="w-4 h-4" /> },
+    { id: 'guidance', label: t('nav.safetyGuidance'), icon: <Shield className="w-4 h-4" /> },
+    { id: 'dispatch', label: t('nav.authorityDispatch'), icon: <Radio className="w-4 h-4" /> },
+    { id: 'about', label: t('nav.about') || 'About', icon: <Info className="w-4 h-4" /> },
   ];
 
   return (
