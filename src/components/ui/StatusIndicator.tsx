@@ -15,7 +15,7 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
     connected: {
       color: 'bg-emerald-500',
       text: 'text-emerald-300',
-      defaultLabel: 'RTDB Synced',
+      defaultLabel: 'Live Synced',
     },
     syncing: {
       color: 'bg-sky-500',

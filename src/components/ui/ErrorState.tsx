@@ -9,8 +9,8 @@ export interface ErrorStateProps {
 }
 
 export const ErrorState: React.FC<ErrorStateProps> = ({
-  title = 'Realtime Synchronization Error',
-  message = 'Unable to establish live link with Realtime Database. Please check your network connection.',
+  title = 'Live Synchronization Error',
+  message = 'Unable to establish live connection with the safety network. Please check your network connection.',
   onRetry,
 }) => {
   return (
