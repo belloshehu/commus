@@ -1,0 +1,9 @@
+# Compiled TypeScript output
+lib/
+
+# Node dependencies
+node_modules/
+
+# Firebase logs
+firebase-debug.log
+firebase-debug.*.log

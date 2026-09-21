@@ -135,7 +135,7 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({
               ],
             }),
           });
-        } catch (e) {}
+        } catch (e) { }
 
         // Show Confirmation & Badge Award Modal
         setJoinedModalCampaign({
@@ -296,9 +296,8 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({
             <Card
               key={camp.id}
               hoverable
-              className={`bg-slate-900/90 border ${
-                isCompleted ? 'border-slate-800' : 'border-purple-500/40'
-              } flex flex-col justify-between transition-all duration-300 shadow-lg`}
+              className={`bg-slate-900/90 border ${isCompleted ? 'border-slate-800' : 'border-purple-500/40'
+                } flex flex-col justify-between transition-all duration-300 shadow-lg`}
             >
               <div>
                 <CardHeader>
@@ -394,7 +393,7 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({
                         <span>Latest Update from Organizer:</span>
                       </div>
                       <p className="text-[11px] text-slate-300 leading-relaxed italic">
-                        "{camp.updates[0].message}"
+                        &quot;{camp.updates[0].message}&quot;
                       </p>
                     </div>
                   )}
@@ -430,8 +429,8 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({
                   {joiningId === camp.id
                     ? 'Joining...'
                     : isJoined
-                    ? 'Join Meeting (Active)'
-                    : 'Join Meeting'}
+                      ? 'Join Meeting (Active)'
+                      : 'Join Meeting'}
                 </Button>
               </CardFooter>
             </Card>

@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
 import * as crypto from 'crypto';
 
@@ -11,7 +11,9 @@ const messaging = admin.messaging();
  * RTDB Trigger: Process newly submitted incidents on /incidents/{incidentId}
  * Handles AI risk assessment, high-risk community alert dispatch, authority escalation, and FCM push notifications.
  */
-export const onIncidentCreated = functions.database
+export const onIncidentCreated = functions
+  .region('europe-west1')
+  .database
   .ref('/incidents/{incidentId}')
   .onCreate(async (snapshot, context) => {
     const incidentId = context.params.incidentId;
@@ -114,7 +116,10 @@ export const onIncidentCreated = functions.database
 /**
  * Storage Trigger: Scrub EXIF metadata when evidence media is uploaded to Cloud Storage
  */
-export const onMediaUploaded = functions.storage
+export const onMediaUploaded = functions
+  .region('europe-west1')
+  .storage
+  .bucket('antijj-dev.appspot.com')
   .object()
   .onFinalize(async (object) => {
     const filePath = object.name;
