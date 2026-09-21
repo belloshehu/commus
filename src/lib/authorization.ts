@@ -53,6 +53,8 @@ export type PermissionAction =
   | 'authority:manage'
   | 'campaign:create'
   | 'campaign:manage'
+  | 'guidance:create'
+  | 'guidance:manage'
   | 'super_admin:operate';
 
 export interface ResourceContext {
@@ -191,6 +193,12 @@ export function can(
         return session.communityId === resource.communityId;
       }
       return false;
+    }
+
+    // --- SAFETY GUIDANCE ---
+    case 'guidance:create':
+    case 'guidance:manage': {
+      return role === 'authority' || role === 'admin';
     }
 
     case 'super_admin:operate':
