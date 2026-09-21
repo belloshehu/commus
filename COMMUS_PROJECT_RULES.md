@@ -1,4 +1,4 @@
-# ANTIJJ PROJECT RULES
+# COMMUS PROJECT RULES
 
 ## Core Directives & Mandates
 

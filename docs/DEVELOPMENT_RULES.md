@@ -1,6 +1,6 @@
-# Antijj Repository Development Policy
+# Commus Repository Development Policy
 
-This document is the official source of truth for repository management, Git workflow, commit conventions, branch strategy, code quality standards, and development practices for the **Antijj** project.
+This document is the official source of truth for repository management, Git workflow, commit conventions, branch strategy, code quality standards, and development practices for the **Commus** project.
 
 ---
 
@@ -182,7 +182,7 @@ Before modifying existing code:
 
 ## 14. Phase-Based Development Workflow
 
-Antijj development proceeds in structured phases. Each phase requires:
+Commus development proceeds in structured phases. Each phase requires:
 $$\text{Implementation} \longrightarrow \text{Tests} \longrightarrow \text{Verification} \longrightarrow \text{Documentation} \longrightarrow \text{Git Commit}$$
 
 *Do not silently begin work on unrelated future phases until the active phase is complete and verified.*

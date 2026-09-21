@@ -1,9 +1,9 @@
-# Antijj — Authorization & Security Audit Report
+# Commus — Authorization & Security Audit Report
 
 ## 1. Existing Authentication Mechanism
 * **Firebase Authentication Client Integration**: Email/Password authentication, Google OAuth popup authentication (`src/lib/firebase/auth.ts`).
 * **Session Management**: Client context (`AuthContext.tsx`) synced via `onAuthStateChanged`.
-* **Server Request Authentication**: `authenticateServerSession` in `src/lib/security.ts` attempts to verify session tokens (`x-antijj-session-token`) or `x-user-session` header JSON payload.
+* **Server Request Authentication**: `authenticateServerSession` in `src/lib/security.ts` attempts to verify session tokens (`x-commus-session-token`) or `x-user-session` header JSON payload.
 * **Security Gap**: Currently `x-user-session` header accepts unverified client-constructed JSON objects containing arbitrary role definitions for non-admin endpoints, making client role spoofing possible if unverified.
 
 ## 2. Existing User & Profile Model

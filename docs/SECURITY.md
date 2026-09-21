@@ -1,4 +1,4 @@
-# Antijj Security & Privacy Specification
+# Commus Security & Privacy Specification
 
 ## Threat Model & Safeguards
 

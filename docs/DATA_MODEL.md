@@ -1,4 +1,4 @@
-# Antijj Data Model & Schema Specification (Firebase RTDB)
+# Commus Data Model & Schema Specification (Firebase RTDB)
 
 ## Data Privacy Principles
 1. **Reporter Identity Isolation**: User profile PII is strictly stored in `/userPrivateProfiles/$uid`. Real reporter IDs are written to `/incidentReportersPrivate/$incidentId`, which is accessible ONLY to authorities (`AUTHORITY_DISPATCHER` or `SYSTEM_ADMIN`).

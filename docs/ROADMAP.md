@@ -1,4 +1,4 @@
-# Antijj Project Roadmap
+# Commus Project Roadmap
 
 ## Phase 1: Foundation & Core Architecture (Current)
 - [x] Project architecture & security rules documentation

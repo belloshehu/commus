@@ -1,7 +1,7 @@
-# Antijj System Architecture
+# Commus System Architecture
 
 ## Overview
-Antijj is a privacy-first, community-driven safety monitoring and incident reporting application designed to protect citizens while maintaining auditable escalation paths for emergency authorities.
+Commus is a privacy-first, community-driven safety monitoring and incident reporting application designed to protect citizens while maintaining auditable escalation paths for emergency authorities.
 
 ## System Components
 

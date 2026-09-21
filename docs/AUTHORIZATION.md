@@ -1,8 +1,8 @@
-# Antijj Role-Based Authorization & Permission Architecture
+# Commus Role-Based Authorization & Permission Architecture
 
 ## Overview
 
-Antijj uses a context-aware Role-Based Access Control (RBAC) and Scoped Authorization system built on top of Firebase Authentication, Firebase Custom Claims, Firebase Realtime Database Security Rules, and Next.js backend API routes.
+Commus uses a context-aware Role-Based Access Control (RBAC) and Scoped Authorization system built on top of Firebase Authentication, Firebase Custom Claims, Firebase Realtime Database Security Rules, and Next.js backend API routes.
 
 This document describes the canonical roles, permissions engine, custom claims, community and authority scoping models, route protection, audit logging, and migration safety.
 
@@ -10,7 +10,7 @@ This document describes the canonical roles, permissions engine, custom claims, 
 
 ## 1. Canonical Roles
 
-Antijj defines five primary roles:
+Commus defines five primary roles:
 
 | Role | Name | Scope & Purpose |
 | --- | --- | --- |

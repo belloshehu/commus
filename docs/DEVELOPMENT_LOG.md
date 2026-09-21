@@ -1,4 +1,4 @@
-# Antijj Development Log
+# Commus Development Log
 
 ## Entry 001 - Initial Architecture & Foundation
 * **Date**: September 17, 2026
@@ -25,7 +25,7 @@
    - Vitest suite configured with synthetic data seed scripts.
 
 ### Initial Files Created:
-- `ANTIJJ_PROJECT_RULES.md`
+- `COMMUS_PROJECT_RULES.md`
 - `docs/DEVELOPMENT_RULES.md`
 - `docs/ARCHITECTURE.md`
 - `docs/DATA_MODEL.md`
