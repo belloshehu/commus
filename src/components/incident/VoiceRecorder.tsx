@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Mic, Square, Play, Pause, Trash2, RefreshCw, Volume2 } from 'lucide-react';
 
 interface VoiceRecorderProps {
-  onAudioRecorded?: (audioUrl: string | null) => void;
+  onAudioRecorded?: (audioUrl: string | null, audioBase64?: string | null) => void;
   initialAudioUrl?: string | null;
 }
 
@@ -53,9 +53,16 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         const url = URL.createObjectURL(audioBlob);
         setAudioUrl(url);
-        if (onAudioRecorded) {
-          onAudioRecorded(url);
-        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64 = reader.result as string;
+          if (onAudioRecorded) {
+            onAudioRecorded(url, base64);
+          }
+        };
+        reader.readAsDataURL(audioBlob);
+
         // Stop all track media streams
         stream.getTracks().forEach((track) => track.stop());
       };
