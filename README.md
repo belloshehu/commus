@@ -317,3 +317,6 @@ commus/
 
 Developed with ❤️ for community safety, privacy preservation, and rapid crisis response.  
 Powered by Next.js, Firebase, and Google Gemini AI.
+
+<img width="1440" height="775" alt="commus screen 2" src="https://github.com/user-attachments/assets/bee2c440-7254-430e-94bb-e5fd7efc19d5" />
+<img width="1440" height="776" alt="commus screen 1" src="https://github.com/user-attachments/assets/9631fbec-f6b5-42fa-972c-3f641411dd1b" />
