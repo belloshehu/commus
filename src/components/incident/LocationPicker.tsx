@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
-import { MapPin, Navigation, ShieldCheck, Info } from 'lucide-react';
-import { fuzzLocation } from '@/lib/location';
+import { MapPin, Navigation, ShieldCheck, Info, Layers, Compass } from 'lucide-react';
+import { fuzzLocation, DEFAULT_COMMUNITY_COORDINATES, resolveLocationDetails } from '@/lib/location';
 
 export interface LocationSelection {
   address: string;
@@ -15,6 +15,9 @@ export interface LocationSelection {
   isCurrentDeviceLocation: boolean;
   fuzzedLatitude: number;
   fuzzedLongitude: number;
+  locationName?: string;
+  state?: string;
+  country?: string;
 }
 
 interface LocationPickerProps {
@@ -25,6 +28,17 @@ interface LocationPickerProps {
 export const LocationPicker: React.FC<LocationPickerProps> = ({ value, onChange }) => {
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectError, setDetectError] = useState<string | null>(null);
+
+  // Auto-detect browser GPS on mount if initial coordinates are unset or at foreign default
+  useEffect(() => {
+    if (
+      !value.latitude ||
+      !value.longitude ||
+      (value.latitude === 40.7128 && value.longitude === -74.006)
+    ) {
+      detectCurrentGps();
+    }
+  }, []);
 
   const handleModeChange = (useCurrentGps: boolean) => {
     if (useCurrentGps) {
@@ -41,12 +55,13 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ value, onChange 
     setIsDetecting(true);
     setDetectError(null);
 
-    if ('geolocation' in navigator) {
+    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
           const fuzzed = fuzzLocation(lat, lng);
+          const resolved = resolveLocationDetails(lat, lng, value.address);
 
           onChange({
             ...value,
@@ -55,16 +70,26 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ value, onChange 
             fuzzedLatitude: fuzzed.blurredLatitude,
             fuzzedLongitude: fuzzed.blurredLongitude,
             isCurrentDeviceLocation: true,
-            address: value.address || 'Detected Current Device Zone',
+            address: value.address || `${resolved.locationName}, ${resolved.state}`,
+            locationName: resolved.locationName,
+            state: resolved.state,
+            country: resolved.country,
           });
           setIsDetecting(false);
         },
         (err) => {
           console.warn('[LocationPicker] Geolocation error or fallback:', err.message);
-          // Default to central city coordinates fallback
-          const defaultLat = 40.7128;
-          const defaultLng = -74.006;
+          const defaultLat = DEFAULT_COMMUNITY_COORDINATES.latitude;
+          const defaultLng = DEFAULT_COMMUNITY_COORDINATES.longitude;
           const fuzzed = fuzzLocation(defaultLat, defaultLng);
+          const resolved = resolveLocationDetails(
+            defaultLat,
+            defaultLng,
+            DEFAULT_COMMUNITY_COORDINATES.address,
+            DEFAULT_COMMUNITY_COORDINATES.locationName,
+            DEFAULT_COMMUNITY_COORDINATES.state,
+            DEFAULT_COMMUNITY_COORDINATES.country
+          );
 
           onChange({
             ...value,
@@ -73,28 +98,86 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ value, onChange 
             fuzzedLatitude: fuzzed.blurredLatitude,
             fuzzedLongitude: fuzzed.blurredLongitude,
             isCurrentDeviceLocation: true,
-            address: 'Central District Safety Grid (Simulated)',
+            address: value.address || DEFAULT_COMMUNITY_COORDINATES.address,
+            locationName: resolved.locationName,
+            state: resolved.state,
+            country: resolved.country,
           });
+          setDetectError('Browser Geolocation unavailable or blocked. Applied active safety zone location.');
           setIsDetecting(false);
         },
-        { timeout: 5000 }
+        { timeout: 7000, enableHighAccuracy: true }
       );
     } else {
-      setDetectError('Browser Geolocation is not supported. Please type an address or landmark manually.');
+      const defaultLat = DEFAULT_COMMUNITY_COORDINATES.latitude;
+      const defaultLng = DEFAULT_COMMUNITY_COORDINATES.longitude;
+      const fuzzed = fuzzLocation(defaultLat, defaultLng);
+      const resolved = resolveLocationDetails(
+        defaultLat,
+        defaultLng,
+        DEFAULT_COMMUNITY_COORDINATES.address
+      );
+
+      onChange({
+        ...value,
+        latitude: defaultLat,
+        longitude: defaultLng,
+        fuzzedLatitude: fuzzed.blurredLatitude,
+        fuzzedLongitude: fuzzed.blurredLongitude,
+        isCurrentDeviceLocation: false,
+        address: value.address || DEFAULT_COMMUNITY_COORDINATES.address,
+        locationName: resolved.locationName,
+        state: resolved.state,
+        country: resolved.country,
+      });
+      setDetectError('Browser Geolocation is not supported. Please type an address or set coordinates manually.');
       setIsDetecting(false);
     }
   };
 
   const handleCoordinateChange = (lat: number, lng: number) => {
     const fuzzed = fuzzLocation(lat, lng);
+    const resolved = resolveLocationDetails(lat, lng, value.address);
     onChange({
       ...value,
       latitude: lat,
       longitude: lng,
       fuzzedLatitude: fuzzed.blurredLatitude,
       fuzzedLongitude: fuzzed.blurredLongitude,
+      locationName: resolved.locationName,
+      state: resolved.state,
+      country: resolved.country,
     });
   };
+
+  const handleAddressChange = (newAddress: string) => {
+    const resolved = resolveLocationDetails(value.latitude, value.longitude, newAddress);
+    onChange({
+      ...value,
+      address: newAddress,
+      locationName: resolved.locationName,
+      state: resolved.state,
+      country: resolved.country,
+    });
+  };
+
+  // Embed map parameters
+  const currentLat = value.latitude || DEFAULT_COMMUNITY_COORDINATES.latitude;
+  const currentLng = value.longitude || DEFAULT_COMMUNITY_COORDINATES.longitude;
+  const delta = 0.02;
+  const bbox = `${currentLng - delta},${currentLat - delta},${currentLng + delta},${currentLat + delta}`;
+  const osmEmbedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
+    bbox
+  )}&layer=mapnik&marker=${currentLat},${currentLng}`;
+
+  const resolved = resolveLocationDetails(
+    currentLat,
+    currentLng,
+    value.address,
+    value.locationName,
+    value.state,
+    value.country
+  );
 
   return (
     <div className="space-y-6">
@@ -149,47 +232,49 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ value, onChange 
         </div>
       )}
 
-      {/* Distinction Section */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-slate-800 text-xs">
-          <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-800/80 space-y-1">
-            <span className="text-slate-400 uppercase tracking-wider text-[10px] font-bold">
-              1. Reporter Location Status
-            </span>
-            <p className="text-slate-200 font-medium">
-              {value.isCurrentDeviceLocation ? 'Detected via Device GPS' : 'Not Attached (Custom Target Specified)'}
-            </p>
-            <p className="text-slate-500 text-[11px] font-mono">
-              [Privacy Status: Masked / Zero Public Exposure]
-            </p>
+      {/* Interactive Map Preview Box */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden space-y-4">
+        <div className="p-3.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
+            <Compass className="w-4 h-4 text-sky-400" />
+            <span>INCIDENT LOCATION MAP PREVIEW</span>
           </div>
+          <span className="text-[11px] text-sky-300 font-mono">
+            {resolved.formattedLocation}
+          </span>
+        </div>
 
-          <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-800/80 space-y-1">
-            <span className="text-slate-400 uppercase tracking-wider text-[10px] font-bold">
-              2. Incident Location (Target)
+        <div className="relative w-full h-[220px] bg-slate-950">
+          <iframe
+            title="Location Selection Map Preview"
+            src={osmEmbedUrl}
+            className="w-full h-full border-0 filter grayscale invert contrast-125 opacity-90"
+            loading="lazy"
+          />
+          <div className="absolute bottom-2 left-2 right-2 bg-slate-900/90 backdrop-blur-sm p-2 rounded-lg border border-slate-800 flex items-center justify-between text-[11px] text-slate-300 font-mono">
+            <span className="flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5 text-rose-400" />
+              <span>Pin Target: {currentLat.toFixed(4)}, {currentLng.toFixed(4)}</span>
             </span>
-            <p className="text-sky-300 font-medium">
-              {value.address || value.landmark || `Grid (${value.fuzzedLatitude}, ${value.fuzzedLongitude})`}
-            </p>
-            <p className="text-slate-400 text-[11px] font-mono">
-              Fuzzed: Lat {value.fuzzedLatitude}, Lng {value.fuzzedLongitude} (~1.2km radius)
-            </p>
+            <span className="text-slate-400">
+              Fuzzed Grid: {value.fuzzedLatitude.toFixed(2)}, {value.fuzzedLongitude.toFixed(2)}
+            </span>
           </div>
         </div>
 
-        {/* Inputs */}
-        <div className="space-y-4">
+        {/* Inputs Section */}
+        <div className="p-4 space-y-4">
           <Input
             label="Incident Address or Street Name"
-            placeholder="e.g. 5th Avenue & 42nd Street"
+            placeholder="e.g. Broad Street & Marina Expressway"
             value={value.address}
-            onChange={(e) => onChange({ ...value, address: e.target.value })}
+            onChange={(e) => handleAddressChange(e.target.value)}
             icon={<MapPin className="w-4 h-4 text-slate-400" />}
           />
 
           <Input
             label="Landmark or Nearby Identification"
-            placeholder="e.g. Near Central Transit Exit / Metro Plaza"
+            placeholder="e.g. Near Central Transit Hub / Main Plaza"
             value={value.landmark}
             onChange={(e) => onChange({ ...value, landmark: e.target.value })}
           />
@@ -199,19 +284,19 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ value, onChange 
               label="Latitude Coordinates"
               type="number"
               step="0.0001"
-              value={value.latitude.toString()}
+              value={value.latitude ? value.latitude.toString() : ''}
               onChange={(e) => handleCoordinateChange(parseFloat(e.target.value) || 0, value.longitude)}
             />
             <Input
               label="Longitude Coordinates"
               type="number"
               step="0.0001"
-              value={value.longitude.toString()}
+              value={value.longitude ? value.longitude.toString() : ''}
               onChange={(e) => handleCoordinateChange(value.latitude, parseFloat(e.target.value) || 0)}
             />
           </div>
 
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-2 border-t border-slate-800">
             <Button
               type="button"
               variant="outline"
@@ -232,3 +317,4 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({ value, onChange 
     </div>
   );
 };
+

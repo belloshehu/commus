@@ -1,5 +1,15 @@
 import crypto from 'crypto';
 
+export const DEFAULT_COMMUNITY_COORDINATES = {
+  latitude: 6.5244,
+  longitude: 3.3792,
+  address: 'Central Safety District',
+  locationName: 'Ikeja Central',
+  state: 'Lagos State',
+  country: 'Nigeria',
+  geohash: 'geo_65_34',
+};
+
 export interface FuzzedLocation {
   blurredLatitude: number;
   blurredLongitude: number;
@@ -145,4 +155,5 @@ export function resolveLocationDetails(
     formattedLocation,
   };
 }
+
 

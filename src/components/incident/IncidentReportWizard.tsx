@@ -29,11 +29,12 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { getCategoryConfig, CategoryBadge, CATEGORY_CONFIG_MAP } from '@/lib/incidentCategoryHelper';
+import { DEFAULT_COMMUNITY_COORDINATES } from '@/lib/location';
 
 export type ReportingStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 interface IncidentReportWizardProps {
-  onCompleted?: (incidentId: string) => void;
+  onCompleted?: (incidentId: string, createdIncident?: any) => void;
   onCancel?: () => void;
 }
 
@@ -53,13 +54,16 @@ export const IncidentReportWizard: React.FC<IncidentReportWizardProps> = ({
   const [voiceNoteUrl, setVoiceNoteUrl] = useState<string | null>(null);
 
   const [location, setLocation] = useState<LocationSelection>({
-    address: '',
+    address: DEFAULT_COMMUNITY_COORDINATES.address,
     landmark: '',
-    latitude: 40.7128,
-    longitude: -74.006,
+    latitude: DEFAULT_COMMUNITY_COORDINATES.latitude,
+    longitude: DEFAULT_COMMUNITY_COORDINATES.longitude,
     isCurrentDeviceLocation: true,
-    fuzzedLatitude: 40.71,
-    fuzzedLongitude: -74.01,
+    fuzzedLatitude: 6.52,
+    fuzzedLongitude: 3.38,
+    locationName: DEFAULT_COMMUNITY_COORDINATES.locationName,
+    state: DEFAULT_COMMUNITY_COORDINATES.state,
+    country: DEFAULT_COMMUNITY_COORDINATES.country,
   });
 
   const [evidenceList, setEvidenceList] = useState<UploadingFile[]>([]);
@@ -113,7 +117,10 @@ export const IncidentReportWizard: React.FC<IncidentReportWizardProps> = ({
     try {
       const response = await fetch('/api/incidents', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-session': JSON.stringify(session),
+        },
         body: JSON.stringify({
           session,
           communityId: session.communityId || 'comm_central',
@@ -150,8 +157,29 @@ export const IncidentReportWizard: React.FC<IncidentReportWizardProps> = ({
 
       setSubmittedIncidentId(data.incidentId);
       setCurrentStep(7);
+
+      const createdIncidentRecord = {
+        id: data.incidentId,
+        communityId: session.communityId || 'comm_central',
+        category,
+        title: title.trim(),
+        description: description.trim(),
+        reporterLabel: 'Reported by a verified community member',
+        blurredLocation: data.blurredLocation || {
+          latitude: location.fuzzedLatitude || location.latitude,
+          longitude: location.fuzzedLongitude || location.longitude,
+          geohash: 'dr5ru',
+        },
+        severity: (dangerLevel as any) || 'MEDIUM',
+        status: 'SUBMITTED',
+        upvotes: 0,
+        downvotes: 0,
+        authenticityStatus: 'UNREVIEWED',
+        createdAt: Date.now(),
+      };
+
       if (onCompleted) {
-        onCompleted(data.incidentId);
+        onCompleted(data.incidentId, createdIncidentRecord);
       }
     } catch (err: any) {
       console.error('[IncidentReportWizard] Submission failure:', err);

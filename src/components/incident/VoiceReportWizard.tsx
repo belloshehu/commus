@@ -13,6 +13,7 @@ import { DangerLevelIndicator } from '@/components/ui/DangerLevelIndicator';
 import { VoiceRecorder } from './VoiceRecorder';
 import { LocationPicker, LocationSelection } from './LocationPicker';
 import { EvidenceUploader, UploadingFile } from './EvidenceUploader';
+import { DEFAULT_COMMUNITY_COORDINATES } from '@/lib/location';
 import { classifyVoiceTranscript, VoiceClassificationResult } from '@/lib/voiceCategoryClassifier';
 import { CategoryBadge, CATEGORY_CONFIG_MAP } from '@/lib/incidentCategoryHelper';
 import {
@@ -37,7 +38,7 @@ import Link from 'next/link';
 export type VoiceStep = 1 | 2 | 3 | 4 | 5;
 
 interface VoiceReportWizardProps {
-  onCompleted?: (incidentId: string) => void;
+  onCompleted?: (incidentId: string, createdIncident?: any) => void;
   onCancel?: () => void;
 }
 
@@ -63,13 +64,16 @@ export const VoiceReportWizard: React.FC<VoiceReportWizardProps> = ({
   // Step 2 & 3 state
   const [evidenceList, setEvidenceList] = useState<UploadingFile[]>([]);
   const [location, setLocation] = useState<LocationSelection>({
-    address: '',
+    address: DEFAULT_COMMUNITY_COORDINATES.address,
     landmark: '',
-    latitude: 40.7128,
-    longitude: -74.006,
+    latitude: DEFAULT_COMMUNITY_COORDINATES.latitude,
+    longitude: DEFAULT_COMMUNITY_COORDINATES.longitude,
     isCurrentDeviceLocation: true,
-    fuzzedLatitude: 40.71,
-    fuzzedLongitude: -74.01,
+    fuzzedLatitude: 6.52,
+    fuzzedLongitude: 3.38,
+    locationName: DEFAULT_COMMUNITY_COORDINATES.locationName,
+    state: DEFAULT_COMMUNITY_COORDINATES.state,
+    country: DEFAULT_COMMUNITY_COORDINATES.country,
   });
   const [dangerLevel, setDangerLevel] = useState<'LOW' | 'MEDIUM' | 'HIGH'>('MEDIUM');
   const [safetyConfirmed, setSafetyConfirmed] = useState(false);
@@ -169,6 +173,7 @@ export const VoiceReportWizard: React.FC<VoiceReportWizardProps> = ({
 
     try {
       const payload = {
+        session,
         communityId: session.communityId || 'comm_central',
         category,
         title: title.trim(),
@@ -201,6 +206,7 @@ export const VoiceReportWizard: React.FC<VoiceReportWizardProps> = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-user-session': JSON.stringify(session),
         },
         body: JSON.stringify(payload),
       });
@@ -214,8 +220,28 @@ export const VoiceReportWizard: React.FC<VoiceReportWizardProps> = ({
       setSubmittedIncidentId(json.incidentId);
       setCurrentStep(5); // Success step
 
+      const createdIncidentRecord = {
+        id: json.incidentId,
+        communityId: session.communityId || 'comm_central',
+        category,
+        title: title.trim(),
+        description: description.trim(),
+        reporterLabel: 'Reported by a verified community member',
+        blurredLocation: json.blurredLocation || {
+          latitude: location.fuzzedLatitude || location.latitude,
+          longitude: location.fuzzedLongitude || location.longitude,
+          geohash: 'dr5ru',
+        },
+        severity: (dangerLevel as any) || 'MEDIUM',
+        status: 'SUBMITTED',
+        upvotes: 0,
+        downvotes: 0,
+        authenticityStatus: 'UNREVIEWED',
+        createdAt: Date.now(),
+      };
+
       if (onCompleted) {
-        onCompleted(json.incidentId);
+        onCompleted(json.incidentId, createdIncidentRecord);
       }
     } catch (err: any) {
       console.error('[VoiceReportWizard] Submission failed:', err);

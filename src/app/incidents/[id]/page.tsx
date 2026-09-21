@@ -40,7 +40,7 @@ const mockDetailIncidents: Record<string, IncidentRecord> = {
     description:
       'High volume gathering reported near east exit gates causing physical congestion. Authorities advised to monitor movement.',
     reporterLabel: 'Reported by a verified community member',
-    blurredLocation: { latitude: 40.7128, longitude: -74.006, geohash: 'dr5ru' },
+    blurredLocation: { latitude: 6.5244, longitude: 3.3792, geohash: 'geo_65_34' },
     encryptedPreciseLocation: 'payload_encrypted',
     severity: 'HIGH',
     dangerLevel: 'HIGH',
@@ -67,7 +67,7 @@ const mockDetailIncidents: Record<string, IncidentRecord> = {
     title: 'Severe Infrastructure Road Hazard',
     description: 'Debris and damaged barrier blocking two lanes on 5th Avenue. Traffic slowing down.',
     reporterLabel: 'Reported by a verified community member',
-    blurredLocation: { latitude: 40.715, longitude: -74.002, geohash: 'dr5rv' },
+    blurredLocation: { latitude: 6.528, longitude: 3.375, geohash: 'geo_65_34' },
     encryptedPreciseLocation: 'payload_encrypted',
     severity: 'MEDIUM',
     dangerLevel: 'MEDIUM',
@@ -84,7 +84,7 @@ const mockDetailIncidents: Record<string, IncidentRecord> = {
     title: 'Street Lighting Failure',
     description: 'Multiple streetlights offline along 8th Street walkway. Reduced visibility.',
     reporterLabel: 'Reported by a verified community member',
-    blurredLocation: { latitude: 40.71, longitude: -74.008, geohash: 'dr5rt' },
+    blurredLocation: { latitude: 6.52, longitude: 3.38, geohash: 'geo_65_34' },
     encryptedPreciseLocation: 'payload_encrypted',
     severity: 'LOW',
     dangerLevel: 'LOW',
@@ -147,6 +147,14 @@ export default function IncidentDetailPage({
   useEffect(() => {
     setIsLoading(true);
     setAuthError(null);
+    let isMounted = true;
+
+    // Fallback timer if Firebase RTDB connection takes longer than 1.5s
+    const fallbackTimer = setTimeout(() => {
+      if (isMounted) {
+        setIsLoading(false);
+      }
+    }, 1500);
 
     // Initial check with fallback synthetic or RTDB subscription
     const mockMatch = mockDetailIncidents[incidentId];
@@ -154,6 +162,7 @@ export default function IncidentDetailPage({
       if (!canViewPrivateCommunityIncidents(session, mockMatch.communityId)) {
         setAuthError('UNAUTHORIZED: You do not have permission to view safety incidents from this community zone.');
         setIsLoading(false);
+        clearTimeout(fallbackTimer);
         return;
       }
       setIncident({
@@ -161,10 +170,13 @@ export default function IncidentDetailPage({
         reporterLabel: 'Reported by a verified community member',
       });
       setIsLoading(false);
+      clearTimeout(fallbackTimer);
     }
 
     // Subscribe to live RTDB incident updates
     const unsubIncident = subscribeToIncident(incidentId, (liveData) => {
+      clearTimeout(fallbackTimer);
+      if (!isMounted) return;
       if (liveData) {
         if (!canViewPrivateCommunityIncidents(session, liveData.communityId)) {
           setAuthError('UNAUTHORIZED: You do not have permission to view safety incidents from this community zone.');
@@ -181,10 +193,13 @@ export default function IncidentDetailPage({
 
     // Subscribe to active response updates
     const unsubCoord = subscribeToActiveCoordination(incidentId, (coordData) => {
+      if (!isMounted) return;
       setCoordination(coordData);
     });
 
     return () => {
+      isMounted = false;
+      clearTimeout(fallbackTimer);
       unsubIncident();
       unsubCoord();
     };

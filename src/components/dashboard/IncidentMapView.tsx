@@ -5,6 +5,8 @@ import { MapPin, Navigation, Compass, Layers, ShieldCheck, Info, ZoomIn, ZoomOut
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 
+import { resolveLocationDetails, DEFAULT_COMMUNITY_COORDINATES } from '@/lib/location';
+
 export interface IncidentMapViewProps {
   latitude: number;
   longitude: number;
@@ -17,17 +19,31 @@ export interface IncidentMapViewProps {
 }
 
 export const IncidentMapView: React.FC<IncidentMapViewProps> = ({
-  latitude,
-  longitude,
-  geohash = 'dr5ru',
-  locationName = 'Central District',
-  state = 'Lagos State',
-  country = 'Nigeria',
+  latitude = DEFAULT_COMMUNITY_COORDINATES.latitude,
+  longitude = DEFAULT_COMMUNITY_COORDINATES.longitude,
+  geohash = DEFAULT_COMMUNITY_COORDINATES.geohash,
+  locationName,
+  state,
+  country,
   address,
   className = '',
 }) => {
   const [zoomLevel, setZoomLevel] = useState(13);
   const [showBlurCircle, setShowBlurCircle] = useState(true);
+
+  // Resolve location details from coordinates and address to guarantee text matches map tile
+  const resolved = resolveLocationDetails(
+    latitude,
+    longitude,
+    address,
+    locationName,
+    state,
+    country
+  );
+
+  const displayLocationName = resolved.locationName;
+  const displayState = resolved.state;
+  const displayCountry = resolved.country;
 
   // Convert lat/lng to OpenStreetMap static tile bbox / embed parameters
   const delta = 0.04 / (zoomLevel / 12);
@@ -36,7 +52,7 @@ export const IncidentMapView: React.FC<IncidentMapViewProps> = ({
     bbox
   )}&layer=mapnik&marker=${latitude},${longitude}`;
 
-  const formattedLocation = [locationName, state, country].filter(Boolean).join(', ');
+  const formattedLocation = resolved.formattedLocation;
 
   const handleZoomIn = () => setZoomLevel((prev) => Math.min(prev + 1, 17));
   const handleZoomOut = () => setZoomLevel((prev) => Math.max(prev - 1, 9));
@@ -123,9 +139,9 @@ export const IncidentMapView: React.FC<IncidentMapViewProps> = ({
           <div className="absolute bottom-3 left-3 right-3 sm:right-auto bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl p-3 shadow-xl max-w-sm flex items-start gap-2.5 text-xs">
             <Navigation className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
             <div className="space-y-0.5 min-w-0">
-              <div className="font-bold text-slate-100 truncate">{locationName}</div>
+              <div className="font-bold text-slate-100 truncate">{displayLocationName}</div>
               <div className="text-[11px] text-slate-300 truncate">
-                {state}, {country}
+                {displayState}, {displayCountry}
               </div>
               <div className="text-[10px] text-slate-400 font-mono pt-1 border-t border-slate-800/80 mt-1 flex items-center gap-1.5">
                 <ShieldCheck className="w-3 h-3 text-emerald-400 shrink-0" />
