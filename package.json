@@ -8,7 +8,11 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "functions:build": "npm --prefix functions run build",
+    "functions:deploy": "npm --prefix functions run build && npx -y firebase-tools deploy --only functions",
+    "functions:serve": "npm --prefix functions run build && npx -y firebase-tools emulators:start --only functions",
+    "functions:logs": "npx -y firebase-tools functions:log"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

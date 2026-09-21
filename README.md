@@ -163,10 +163,90 @@ npm start
 
 ---
 
+## ⚡ Deploying Firebase Cloud Functions
+
+Commus includes trusted serverless background functions located in [`functions/`](file:///Users/belloshehu/dev/antijj/functions) that handle critical automated safety operations:
+
+- **`onIncidentCreated`**: Triggered on `/incidents/{incidentId}` in Realtime Database. Evaluates automated AI threat severity, dispatches high-risk community alerts, triggers FCM mobile push notifications, and records immutable SHA-256 escalation audit entries.
+- **`onMediaUploaded`**: Triggered on Cloud Storage file uploads. Permanently scrubs EXIF metadata, camera serials, and GPS coordinates from uploaded incident evidence before making it accessible.
+
+### 1. Prerequisites for Deployment
+Before deploying functions to Google Cloud / Firebase:
+1. **Firebase Blaze Plan**: Ensure your Firebase project is on the **Blaze (Pay-as-you-go)** plan (required by Google Cloud Functions for outbound networking and triggers).
+2. **Firebase CLI**: Install the Firebase CLI globally (or use `npx firebase-tools`):
+   ```bash
+   npm install -g firebase-tools
+   ```
+3. **Authenticate with Firebase**:
+   ```bash
+   firebase login
+   ```
+4. **Set Your Active Project**:
+   ```bash
+   firebase use <your-firebase-project-id>
+   ```
+   *(Or verify the project is specified in [`.firebaserc`](file:///Users/belloshehu/dev/antijj/.firebaserc))*
+
+### 2. Deploying Functions
+
+#### Option A: Using Root NPM Scripts (Recommended)
+You can build and deploy the functions directly from the project root:
+```bash
+# Build TypeScript and deploy all cloud functions
+npm run functions:deploy
+```
+
+#### Option B: Using the Firebase CLI Directly
+```bash
+# Compile functions TypeScript
+npm --prefix functions run build
+
+# Deploy all functions
+firebase deploy --only functions
+```
+
+#### Option C: Deploying Specific Functions
+To deploy an individual function without redeploying the entire suite:
+```bash
+# Deploy only the incident creation trigger
+firebase deploy --only functions:onIncidentCreated
+
+# Deploy only the media EXIF sanitizer
+firebase deploy --only functions:onMediaUploaded
+```
+
+### 3. Local Emulator Testing
+You can test the Cloud Functions locally alongside Realtime Database and Cloud Storage emulators without incurring cloud costs:
+```bash
+# Start functions emulator with live compilation
+npm run functions:serve
+
+# Or start all emulators (Auth, Functions, RTDB, Storage)
+firebase emulators:start
+```
+The Firebase Emulator UI will be available at [http://localhost:4000](http://localhost:4000).
+
+### 4. Viewing Real-Time Function Logs
+To stream production logs from deployed functions:
+```bash
+# Via npm script
+npm run functions:logs
+
+# Or via Firebase CLI with limit
+firebase functions:log --lines 50
+```
+
+---
+
 ## 📁 Repository Structure
 
 ```text
 commus/
+├── functions/                    # Firebase Cloud Functions (Trusted Backend)
+│   ├── src/
+│   │   └── index.ts              # onIncidentCreated & onMediaUploaded triggers
+│   ├── package.json              # Functions dependencies (firebase-admin, functions)
+│   └── tsconfig.json             # Node 20 TypeScript compiler configuration
 ├── src/
 │   ├── app/                      # Next.js App Router routes & endpoints
 │   │   ├── api/                  # RESTful API handlers (incidents, AI, badges, admin)

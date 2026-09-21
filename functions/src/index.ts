@@ -119,7 +119,6 @@ export const onIncidentCreated = functions
 export const onMediaUploaded = functions
   .region('europe-west1')
   .storage
-  .bucket('antijj-dev.appspot.com')
   .object()
   .onFinalize(async (object) => {
     const filePath = object.name;
