@@ -328,12 +328,7 @@ export default function HomePage() {
         {/* Tab Content: Education & Engagement */}
         {activeTab === 'education' && (
           <EducationTab
-            userSession={{
-              userId: 'user_demo_101',
-              role: 'VERIFIED_COMMUNITY_LEADER',
-              isAuthenticated: true,
-              communityIds: ['comm_central'],
-            }}
+            userSession={session}
           />
         )}
 

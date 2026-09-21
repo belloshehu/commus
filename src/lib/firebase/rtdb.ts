@@ -12,6 +12,7 @@ import {
 } from 'firebase/database';
 import { rtdb } from './client';
 import { UserSession, canSubmitIncident, canViewPrivateCommunityIncidents } from '../auth';
+import type { CommunityCampaign } from '../education/types';
 
 export type IncidentCategory = 
   | 'TRAFFIC_HAZARD'
@@ -720,5 +721,33 @@ export async function getUserVote(
   const snap = await get(userVoteRef);
   return snap.exists() ? snap.val() : null;
 }
+
+/**
+ * RTDB Real-time subscription for educational campaigns.
+ */
+export function subscribeToCampaigns(
+  callback: (campaigns: CommunityCampaign[]) => void
+): Unsubscribe {
+  const campaignsRef = ref(rtdb, 'campaigns');
+
+  return onValue(
+    campaignsRef,
+    (snapshot: any) => {
+      const data = snapshot.val();
+      if (!data) {
+        callback([]);
+        return;
+      }
+      const list: CommunityCampaign[] = Object.values(data);
+      list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      callback(list);
+    },
+    (err: any) => {
+      console.warn('[rtdb] subscribeToCampaigns error:', err);
+      callback([]);
+    }
+  );
+}
+
 
 
