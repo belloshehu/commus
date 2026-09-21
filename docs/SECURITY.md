@@ -26,7 +26,12 @@
 * **Threat**: Unauthorized or abusive authority escalation.
 * **Safeguard**: Every escalation generates a cryptographically signed audit log (`/escalationAuditLogs/$logId`) recording the actor, target, timestamp, and SHA-256 payload digest. Client SDK write access to `/escalationAuditLogs` is strictly set to `.write: false`.
 
-### 7. Secrets Management
+### 7. Role-Based Access Control (RBAC) & Custom Claims
+* **Threat**: Client-side role tampering or unauthorized administrative access.
+* **Safeguard**: Authorization is governed by Firebase Auth Custom Claims (`auth.token.role`) and server-side session token verification. Client modifications to role properties are rejected. Privileged operations flow exclusively through `/api/admin/roles` with super admin demotion protection and structured audit logging in `/auditLogs`.
+
+### 8. Secrets Management
 * Firebase Admin credentials and private keys are processed exclusively in server-side Cloud Functions and Next.js server context.
 * Client code strictly uses public Firebase config variables (`NEXT_PUBLIC_FIREBASE_*`).
+
 

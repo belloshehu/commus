@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import crypto from 'crypto';
 import { UserSession, UserRole } from './auth';
+import { normalizeRole, CanonicalRole } from './authorization';
 
 const SERVER_SESSION_SECRET = process.env.ANTIJJ_SERVER_SECRET || 'antijj_secure_server_session_secret_key_2026';
 
@@ -42,7 +43,8 @@ export function checkRateLimit(
 }
 
 export function signSessionToken(session: UserSession): string {
-  const payload = JSON.stringify(session);
+  const canonicalRole = normalizeRole(session.role);
+  const payload = JSON.stringify({ ...session, canonicalRole });
   const signature = crypto
     .createHmac('sha256', SERVER_SESSION_SECRET)
     .update(payload)
@@ -64,7 +66,9 @@ export function verifySessionToken(tokenString: string): UserSession | null {
       return null;
     }
 
-    return JSON.parse(payload) as UserSession;
+    const sess = JSON.parse(payload) as UserSession;
+    sess.canonicalRole = normalizeRole(sess.role);
+    return sess;
   } catch {
     return null;
   }
@@ -76,7 +80,7 @@ export function verifySessionToken(tokenString: string): UserSession | null {
  */
 export function authenticateServerSession(
   req: NextRequest | Request,
-  allowedRoles?: UserRole[],
+  allowedRoles?: (UserRole | CanonicalRole)[],
   bodySession?: any
 ): UserSession {
   let session: UserSession | null = null;
@@ -97,16 +101,17 @@ export function authenticateServerSession(
         const secretHeader = req.headers.get('x-antijj-server-secret');
         const isSecretValid = secretHeader === SERVER_SESSION_SECRET;
 
-        // Elevated admin roles require valid server secret or signed token
-        const isElevatedRole = ['SYSTEM_ADMIN', 'AUTHORITY_DISPATCHER'].includes(parsed.role);
+        const normalized = normalizeRole(parsed.role);
+        // Elevated admin/authority roles require valid server secret or signed token
+        const isElevatedRole = ['admin', 'super_admin', 'authority'].includes(normalized);
         if (!isElevatedRole || isSecretValid) {
-          const role: UserRole = parsed.role === 'CITIZEN' ? 'CITIZEN_MEMBER' : parsed.role;
           session = {
             userId: parsed.userId || parsed.uid || 'usr_authenticated',
             pseudonymId: parsed.pseudonymId || `pseudo_${(parsed.userId || parsed.uid || 'usr').slice(0, 8)}`,
-            role,
+            role: parsed.role,
+            canonicalRole: normalized,
             communityId: parsed.communityId || 'comm_central',
-            isAuthenticated: Boolean(parsed.isAuthenticated ?? role !== 'ANONYMOUS'),
+            isAuthenticated: Boolean(parsed.isAuthenticated ?? normalized !== 'user'),
           };
         }
       }
@@ -117,15 +122,16 @@ export function authenticateServerSession(
 
   // 3. Check bodySession parameter (e.g. session passed in request payload body)
   if (!session && bodySession && typeof bodySession === 'object' && 'role' in bodySession) {
-    const isElevatedRole = ['SYSTEM_ADMIN', 'AUTHORITY_DISPATCHER'].includes(bodySession.role);
+    const normalized = normalizeRole(bodySession.role);
+    const isElevatedRole = ['admin', 'super_admin', 'authority'].includes(normalized);
     if (!isElevatedRole) {
-      const role: UserRole = bodySession.role === 'CITIZEN' ? 'CITIZEN_MEMBER' : bodySession.role;
       session = {
         userId: bodySession.userId || bodySession.uid || 'usr_authenticated',
         pseudonymId: bodySession.pseudonymId || `pseudo_${(bodySession.userId || bodySession.uid || 'usr').slice(0, 8)}`,
-        role,
+        role: bodySession.role,
+        canonicalRole: normalized,
         communityId: bodySession.communityId || 'comm_central',
-        isAuthenticated: Boolean(bodySession.isAuthenticated ?? role !== 'ANONYMOUS'),
+        isAuthenticated: Boolean(bodySession.isAuthenticated ?? normalized !== 'user'),
       };
     }
   }
@@ -134,14 +140,20 @@ export function authenticateServerSession(
   if (!session) {
     session = {
       role: 'ANONYMOUS',
+      canonicalRole: 'user',
       isAuthenticated: false,
     };
+  } else {
+    session.canonicalRole = normalizeRole(session.role);
   }
 
   // 5. Role Authorization Check if required
   if (allowedRoles && allowedRoles.length > 0) {
-    if (!session.isAuthenticated || !allowedRoles.includes(session.role)) {
-      throw new Error(`UNAUTHORIZED: Role ${session.role} is not permitted to perform this operation.`);
+    const userCanonicalRole = session.canonicalRole || normalizeRole(session.role);
+    const normalizedAllowed = allowedRoles.map((r) => normalizeRole(r));
+
+    if (!session.isAuthenticated || !normalizedAllowed.includes(userCanonicalRole)) {
+      throw new Error(`UNAUTHORIZED: Role ${session.role} (${userCanonicalRole}) is not permitted to perform this operation.`);
     }
   }
 

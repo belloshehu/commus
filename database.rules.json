@@ -5,32 +5,46 @@
 
     "users": {
       "$uid": {
-        ".read": "auth != null && (auth.uid === $uid || auth.token.role === 'SYSTEM_ADMIN' || auth.token.role === 'AUTHORITY_DISPATCHER')",
-        ".write": "auth != null && (auth.uid === $uid || auth.token.role === 'SYSTEM_ADMIN')",
+        ".read": "auth != null && (auth.uid === $uid || auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN' || auth.token.role === 'authority' || auth.token.role === 'AUTHORITY_DISPATCHER')",
+        ".write": "auth != null && (auth.uid === $uid || auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')",
         "role": {
-          ".validate": "newData.isString() && (newData.val() === 'CITIZEN_MEMBER' || newData.val() === 'VERIFIED_COMMUNITY_LEADER' || newData.val() === 'AUTHORITY_DISPATCHER' || newData.val() === 'SYSTEM_ADMIN')"
+          ".validate": "newData.isString() && (newData.val() === 'user' || newData.val() === 'community_manager' || newData.val() === 'authority' || newData.val() === 'admin' || newData.val() === 'super_admin' || newData.val() === 'CITIZEN_MEMBER' || newData.val() === 'VERIFIED_COMMUNITY_LEADER' || newData.val() === 'AUTHORITY_DISPATCHER' || newData.val() === 'SYSTEM_ADMIN')"
         }
       }
     },
 
     "userPrivateProfiles": {
       "$uid": {
-        ".read": "auth != null && (auth.uid === $uid || auth.token.role === 'SYSTEM_ADMIN')",
-        ".write": "auth != null && (auth.uid === $uid || auth.token.role === 'SYSTEM_ADMIN')"
+        ".read": "auth != null && (auth.uid === $uid || auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')",
+        ".write": "auth != null && (auth.uid === $uid || auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')"
       }
     },
 
     "communities": {
       ".read": "auth != null",
       "$communityId": {
-        ".write": "auth != null && (auth.token.role === 'VERIFIED_COMMUNITY_LEADER' || auth.token.role === 'SYSTEM_ADMIN')"
+        ".write": "auth != null && (auth.token.role === 'community_manager' || auth.token.role === 'VERIFIED_COMMUNITY_LEADER' || auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')"
       }
+    },
+
+    "communityMembers": {
+      ".read": "auth != null",
+      "$communityId": {
+        "$uid": {
+          ".write": "auth != null && (auth.uid === $uid || auth.token.role === 'community_manager' || auth.token.role === 'VERIFIED_COMMUNITY_LEADER' || auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')"
+        }
+      }
+    },
+
+    "authorityAssignments": {
+      ".read": "auth != null && (auth.uid === $uid || auth.token.role === 'authority' || auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')",
+      ".write": "auth != null && (auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')"
     },
 
     "incidents": {
       ".read": "auth != null",
       "$incidentId": {
-        ".write": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && (!data.exists() || auth.token.role === 'VERIFIED_COMMUNITY_LEADER' || auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'SYSTEM_ADMIN')",
+        ".write": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && (!data.exists() || auth.token.role === 'community_manager' || auth.token.role === 'VERIFIED_COMMUNITY_LEADER' || auth.token.role === 'authority' || auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')",
         ".validate": "newData.hasChildren(['communityId', 'category', 'title', 'description', 'reporterLabel', 'blurredLocation', 'encryptedPreciseLocation', 'severity', 'status'])",
         "reporterLabel": {
           ".validate": "newData.val() === 'Reported by a verified community member'"
@@ -49,8 +63,8 @@
 
     "incidentReportersPrivate": {
       "$incidentId": {
-        ".read": "auth != null && (auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'SYSTEM_ADMIN')",
-        ".write": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && (!data.exists() && newData.child('reporterUid').val() === auth.uid || auth.token.role === 'SYSTEM_ADMIN')"
+        ".read": "auth != null && (auth.token.role === 'authority' || auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')",
+        ".write": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && (!data.exists() && newData.child('reporterUid').val() === auth.uid || auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')"
       }
     },
 
@@ -66,7 +80,7 @@
     "activeResponseCoordination": {
       "$incidentId": {
         ".read": "auth != null",
-        ".write": "auth != null && (auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'VERIFIED_COMMUNITY_LEADER' || auth.token.role === 'SYSTEM_ADMIN')"
+        ".write": "auth != null && (auth.token.role === 'authority' || auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'community_manager' || auth.token.role === 'VERIFIED_COMMUNITY_LEADER' || auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')"
       }
     },
 
@@ -74,20 +88,25 @@
       "$communityId": {
         ".read": "auth != null",
         "$alertId": {
-          ".write": "auth != null && (auth.token.role === 'VERIFIED_COMMUNITY_LEADER' || auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'SYSTEM_ADMIN')"
+          ".write": "auth != null && (auth.token.role === 'community_manager' || auth.token.role === 'VERIFIED_COMMUNITY_LEADER' || auth.token.role === 'authority' || auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')"
         }
       }
     },
 
     "authorityEscalations": {
       "$incidentId": {
-        ".read": "auth != null && (auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'SYSTEM_ADMIN')",
-        ".write": "auth != null && (auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'SYSTEM_ADMIN')"
+        ".read": "auth != null && (auth.token.role === 'authority' || auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')",
+        ".write": "auth != null && (auth.token.role === 'authority' || auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')"
       }
     },
 
     "escalationAuditLogs": {
-      ".read": "auth != null && (auth.token.role === 'AUTHORITY_DISPATCHER' || auth.token.role === 'SYSTEM_ADMIN')",
+      ".read": "auth != null && (auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')",
+      ".write": false
+    },
+
+    "auditLogs": {
+      ".read": "auth != null && (auth.token.role === 'admin' || auth.token.role === 'super_admin' || auth.token.role === 'SYSTEM_ADMIN')",
       ".write": false
     },
 
@@ -99,3 +118,4 @@
     }
   }
 }
+
