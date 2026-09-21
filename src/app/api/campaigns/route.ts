@@ -71,9 +71,21 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { action, campaign, campaignId } = body;
+    const { action, campaign, campaignId, updateMessage } = body;
 
     if (action === 'CREATE') {
+      // Permission check: User must be a community manager / leader or system admin
+      const isLeader = ['VERIFIED_COMMUNITY_LEADER', 'SYSTEM_ADMIN'].includes(session.role);
+      if (!isLeader) {
+        return NextResponse.json(
+          {
+            error: 'FORBIDDEN',
+            message: 'Only verified community managers or leaders can launch educational campaigns.',
+          },
+          { status: 403 }
+        );
+      }
+
       if (!campaign || !campaign.title) {
         return NextResponse.json({ error: 'Campaign title is required.' }, { status: 400 });
       }
@@ -81,6 +93,8 @@ export async function POST(req: NextRequest) {
       const id = `camp_${Date.now()}`;
       const safeTitle = sanitizeHtmlText(campaign.title);
       const safeDesc = sanitizeHtmlText(campaign.description || '');
+      const safeMeetingUrl = campaign.meetingUrl ? sanitizeHtmlText(campaign.meetingUrl) : 'https://meet.google.com/antijj-safety';
+      const safeBadgeName = campaign.badgeRewardName ? sanitizeHtmlText(campaign.badgeRewardName) : 'Community Guardian';
 
       const newCampaign: CommunityCampaign = {
         id,
@@ -89,7 +103,18 @@ export async function POST(req: NextRequest) {
         communityId: campaign.communityId || session.communityId || 'comm_central',
         communityName: sanitizeHtmlText(campaign.communityName || 'Downtown Central District'),
         organizerId: session.userId || 'user_local_leader',
-        organizerLabel: sanitizeHtmlText(campaign.organizerLabel || 'Verified Community Member'),
+        organizerLabel: sanitizeHtmlText(campaign.organizerLabel || 'Verified Community Leader'),
+        meetingUrl: safeMeetingUrl,
+        badgeRewardName: safeBadgeName,
+        badgeRewardId: campaign.badgeRewardId || 'badge_community_guardian',
+        updates: [
+          {
+            id: `upd_${Date.now()}`,
+            message: `Campaign "${safeTitle}" launched by ${sanitizeHtmlText(campaign.organizerLabel || 'Community Leader')}. Join the virtual safety meeting!`,
+            timestamp: Date.now(),
+            authorLabel: sanitizeHtmlText(campaign.organizerLabel || 'Community Leader'),
+          },
+        ],
         startDate: campaign.startDate || Date.now(),
         endDate: campaign.endDate || Date.now() + 1000 * 60 * 60 * 24 * 7,
         status: 'ACTIVE',
@@ -131,7 +156,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
       }
 
+      let isNewJoin = false;
       if (!targetCamp.participantIds.includes(userId)) {
+        isNewJoin = true;
         targetCamp.participantIds.push(userId);
         targetCamp.metrics.participantCount = targetCamp.participantIds.length;
         targetCamp.metrics.reachCount += 5;
@@ -145,6 +172,57 @@ export async function POST(req: NextRequest) {
           });
         } catch (e: any) {}
       }
+
+      return NextResponse.json({
+        success: true,
+        campaign: targetCamp,
+        badgeAwarded: isNewJoin,
+        badgeName: targetCamp.badgeRewardName || 'Campaign Participant Badge',
+      });
+    }
+
+    if (action === 'ADD_UPDATE') {
+      if (!campaignId || !updateMessage) {
+        return NextResponse.json({ error: 'Missing campaignId or updateMessage' }, { status: 400 });
+      }
+
+      const isLeader = ['VERIFIED_COMMUNITY_LEADER', 'SYSTEM_ADMIN'].includes(session.role);
+      if (!isLeader) {
+        return NextResponse.json(
+          { error: 'FORBIDDEN', message: 'Only community managers can post campaign updates.' },
+          { status: 403 }
+        );
+      }
+
+      let targetCamp: CommunityCampaign | undefined;
+      try {
+        const snapshot = await get(ref(rtdb, `campaigns/${campaignId}`));
+        if (snapshot.exists()) {
+          targetCamp = snapshot.val();
+        }
+      } catch (e: any) {}
+
+      if (!targetCamp) {
+        return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
+      }
+
+      const newUpdate = {
+        id: `upd_${Date.now()}`,
+        message: sanitizeHtmlText(updateMessage),
+        timestamp: Date.now(),
+        authorLabel: 'Community Manager',
+      };
+
+      const updatedList = [newUpdate, ...(targetCamp.updates || [])];
+      targetCamp.updates = updatedList;
+      targetCamp.updatedAt = Date.now();
+
+      try {
+        await update(ref(rtdb, `campaigns/${campaignId}`), {
+          updates: updatedList,
+          updatedAt: targetCamp.updatedAt,
+        });
+      } catch (e: any) {}
 
       return NextResponse.json({ success: true, campaign: targetCamp });
     }

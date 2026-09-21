@@ -22,6 +22,7 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { AuthorityDirectory } from '@/components/authority/AuthorityDirectory';
 import { EducationTab } from '@/components/education/EducationTab';
+import { SafetyGuidanceTab } from '@/components/guidance/SafetyGuidanceTab';
 import { AlertTriangle, Plus, Search, ShieldCheck } from 'lucide-react';
 
 const mockIncidents: IncidentCardData[] = [
@@ -328,46 +329,13 @@ export default function HomePage() {
         {/* Tab Content: Education & Engagement */}
         {activeTab === 'education' && (
           <EducationTab
-            userSession={{
-              userId: 'user_demo_101',
-              role: 'VERIFIED_COMMUNITY_LEADER',
-              isAuthenticated: true,
-              communityIds: ['comm_central'],
-            }}
+            userSession={session}
           />
         )}
 
         {/* Tab Content 4: Safety Guidance */}
         {activeTab === 'guidance' && (
-          <div className="space-y-6">
-            <Alert type="safety">
-              SAFETY FIRST: Do NOT approach violent crowds or active conflict areas. Seek immediate shelter or safety.
-            </Alert>
-            <Card>
-              <CardHeader>
-                <CardTitle>Antijj Non-Confrontation UX Principles</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-xs text-slate-300 leading-relaxed">
-                <p>
-                  1. <strong>Detect & Alert</strong>: Antijj is designed strictly as an early-warning platform to inform citizens of safety hazards in their community.
-                </p>
-                <p>
-                  2. <strong>Anti-Vigilantism Guarantee</strong>: The application never provides tools for public accusation, mob coordination, or confronting crowd situations.
-                </p>
-                <p>
-                  3. <strong>Audited Escalation</strong>: Qualifying high-risk hazards are escalated to authorized dispatchers through cryptographically signed audit logs.
-                </p>
-              </CardContent>
-            </Card>
-
-            <EvidencePreview
-              items={[
-                { id: 'm1', storagePath: 'evidence/c1/i1/m1.jpg', contentType: 'image/jpeg', exifScrubbed: true },
-                { id: 'm2', storagePath: 'evidence/c1/i1/m2.mp4', contentType: 'video/mp4', exifScrubbed: true },
-                { id: 'm3', storagePath: 'evidence/c1/i1/m3.mp3', contentType: 'audio/mpeg', exifScrubbed: true },
-              ]}
-            />
-          </div>
+          <SafetyGuidanceTab userSession={session} />
         )}
 
         {/* Tab Content 5: Authority Dispatch Portal */}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Bell, Shield, Radio, ChevronRight, BookOpen, ShieldAlert } from 'lucide-react';
+import { Activity, Bell, Shield, Radio, ChevronRight, BookOpen } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/context';
 
 export interface NavItem {
@@ -54,13 +54,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: <Radio className="w-4 h-4" />,
       badge: 'Audited',
       badgeColor: 'bg-red-950 text-red-300 border-red-800',
-    },
-    {
-      id: 'admin',
-      label: 'Admin Dashboard',
-      icon: <ShieldAlert className="w-4 h-4" />,
-      badge: 'RBAC',
-      badgeColor: 'bg-amber-950 text-amber-300 border-amber-800',
     },
   ];
 

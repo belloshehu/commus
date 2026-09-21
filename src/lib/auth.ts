@@ -1,14 +1,26 @@
-export type UserRole = 
+import { can, normalizeRole, CanonicalRole } from './authorization';
+
+export type LegacyUserRole =
   | 'ANONYMOUS'
   | 'CITIZEN_MEMBER'
   | 'VERIFIED_COMMUNITY_LEADER'
   | 'AUTHORITY_DISPATCHER'
   | 'SYSTEM_ADMIN';
 
+export type ApplicationRole =
+  | 'user'
+  | 'community_manager'
+  | 'authority'
+  | 'admin'
+  | 'super_admin';
+
+export type UserRole = LegacyUserRole | ApplicationRole | string;
+
 export interface UserSession {
   userId?: string;
   pseudonymId?: string;
   role: UserRole;
+  canonicalRole?: CanonicalRole;
   communityId?: string;
   isAuthenticated: boolean;
 }
@@ -18,42 +30,39 @@ export interface UserSession {
  * Enforces backend authorization gate.
  */
 export function canSubmitIncident(session: UserSession): boolean {
-  if (!session.isAuthenticated || session.role === 'ANONYMOUS') {
-    return false;
-  }
-  return ['CITIZEN_MEMBER', 'VERIFIED_COMMUNITY_LEADER', 'AUTHORITY_DISPATCHER', 'SYSTEM_ADMIN'].includes(session.role);
+  if (!session || !session.isAuthenticated) return false;
+  if (session.role === 'ANONYMOUS' || session.role === 'anonymous') return false;
+  return can(session, 'incident:create');
 }
+
 
 /**
  * MANDATE: Private community incidents are only visible to authorized community members.
  */
 export function canViewPrivateCommunityIncidents(session: UserSession, targetCommunityId: string): boolean {
-  if (!session.isAuthenticated || session.role === 'ANONYMOUS') {
-    return false;
-  }
-  if (session.role === 'SYSTEM_ADMIN' || session.role === 'AUTHORITY_DISPATCHER') {
-    return true;
-  }
-  return session.communityId === targetCommunityId;
+  if (!session || !session.isAuthenticated) return false;
+  return can(session, 'community:view_private', { communityId: targetCommunityId });
 }
 
 /**
  * MANDATE: Decrypting precise location is strictly limited to authorized authority dispatchers during escalations.
  */
 export function canAccessPreciseLocation(session: UserSession): boolean {
-  return session.isAuthenticated && (session.role === 'AUTHORITY_DISPATCHER' || session.role === 'SYSTEM_ADMIN');
+  if (!session || !session.isAuthenticated) return false;
+  return can(session, 'incident:decrypt_location');
 }
 
 /**
- * MANDATE: Administration functions are strictly limited to SYSTEM_ADMIN users.
+ * MANDATE: Administration functions are strictly limited to admin or super_admin users.
  */
 export function isSystemAdmin(session: UserSession): boolean {
-  return Boolean(session.isAuthenticated && session.role === 'SYSTEM_ADMIN');
+  if (!session || !session.isAuthenticated) return false;
+  const role = normalizeRole(session.role);
+  return role === 'admin' || role === 'super_admin';
 }
 
 export function assertSystemAdmin(session: UserSession): void {
   if (!isSystemAdmin(session)) {
-    throw new Error('UNAUTHORIZED: SYSTEM_ADMIN privileges are required for this administrative operation.');
+    throw new Error('UNAUTHORIZED: Administrative privileges are required for this operation.');
   }
 }
-

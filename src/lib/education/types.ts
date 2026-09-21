@@ -30,6 +30,13 @@ export interface CampaignMetrics {
   participantCount: number;
 }
 
+export interface CampaignUpdate {
+  id: string;
+  message: string;
+  timestamp: number;
+  authorLabel: string;
+}
+
 export interface CommunityCampaign {
   id: string;
   title: string;
@@ -38,6 +45,10 @@ export interface CommunityCampaign {
   communityName: string;
   organizerId: string;
   organizerLabel: string;
+  meetingUrl?: string;
+  badgeRewardName?: string;
+  badgeRewardId?: string;
+  updates?: CampaignUpdate[];
   startDate: number;
   endDate: number;
   status: CampaignStatus;

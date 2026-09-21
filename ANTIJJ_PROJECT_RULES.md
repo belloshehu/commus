@@ -35,7 +35,10 @@
 
 ### 8. Backend & Database Authorization Enforcement
 * Never rely on client-side restrictions alone.
-* Every sensitive endpoint and DB query must explicitly evaluate authorization rules (RBAC & ownership verification) on the server.
+* Every sensitive endpoint and DB query must explicitly evaluate authorization rules using the centralized permission evaluator `can(session, action, resource)` in `@/lib/authorization`.
+* Standard canonical roles (`user`, `community_manager`, `authority`, `admin`, `super_admin`) backed by Firebase Custom Claims (`auth.token.role`) must be used as the authoritative source of truth.
+* Custom claim role assignment/revocation must flow strictly through server endpoints (`/api/admin/roles`) with audit logging. Direct client modification of user role fields is strictly forbidden.
+
 
 ### 9. Internationalization & RTL Support
 * All user-facing UI text must support multi-language translation (English `en`, Arabic `ar`).
