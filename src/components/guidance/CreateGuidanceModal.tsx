@@ -263,7 +263,7 @@ export const CreateGuidanceModal: React.FC<CreateGuidanceModalProps> = ({
           {/* DON'T's List */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-rose-400 font-semibold">Prohibited Actions (DON'T List)</label>
+              <label className="text-rose-400 font-semibold">Prohibited Actions (DON&apos;T List)</label>
               <button
                 type="button"
                 onClick={handleAddDont}
@@ -347,7 +347,7 @@ export const CreateGuidanceModal: React.FC<CreateGuidanceModalProps> = ({
           {/* Attach Media */}
           <div className="border-t border-slate-800 pt-3">
             <label className="block text-purple-400 font-semibold mb-2">Attach Guidance Media (Photo / Video / Audio)</label>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2">
               <select
                 value={mediaType}

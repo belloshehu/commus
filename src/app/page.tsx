@@ -25,44 +25,45 @@ import { EducationTab } from '@/components/education/EducationTab';
 import { SafetyGuidanceTab } from '@/components/guidance/SafetyGuidanceTab';
 import { AlertTriangle, Plus, Search, ShieldCheck } from 'lucide-react';
 
-const mockIncidents: IncidentCardData[] = [
-  {
-    id: 'inc_101',
-    communityId: 'comm_central',
-    category: 'CROWD_SAFETY_ALERT',
-    title: 'Crowd Bottleneck Near Main Transit Hub',
-    description: 'High volume gathering reported near east exit gates causing physical congestion. Authorities advised to monitor movement.',
-    reporterLabel: 'Reported by a verified community member',
-    blurredLocation: { latitude: 40.7128, longitude: -74.006, geohash: 'dr5ru' },
-    severity: 'HIGH',
-    status: 'VERIFIED',
-    createdAt: Date.now() - 1000 * 60 * 15,
-  },
-  {
-    id: 'inc_102',
-    communityId: 'comm_central',
-    category: 'TRAFFIC_HAZARD',
-    title: 'Severe Infrastructure Road Hazard',
-    description: 'Debris and damaged barrier blocking two lanes on 5th Avenue. Traffic slowing down.',
-    reporterLabel: 'Reported by a verified community member',
-    blurredLocation: { latitude: 40.715, longitude: -74.002, geohash: 'dr5rv' },
-    severity: 'MEDIUM',
-    status: 'SUBMITTED',
-    createdAt: Date.now() - 1000 * 60 * 45,
-  },
-  {
-    id: 'inc_103',
-    communityId: 'comm_central',
-    category: 'INFRASTRUCTURE_FAILURE',
-    title: 'Street Lighting Failure',
-    description: 'Multiple streetlights offline along 8th Street walkway. Reduced visibility.',
-    reporterLabel: 'Reported by a verified community member',
-    blurredLocation: { latitude: 40.71, longitude: -74.008, geohash: 'dr5rt' },
-    severity: 'LOW',
-    status: 'RESOLVED',
-    createdAt: Date.now() - 1000 * 60 * 120,
-  },
-];
+const mockIncidents: IncidentCardData[] = [];
+// const mockIncidents: IncidentCardData[] = [
+//   {
+//     id: 'inc_101',
+//     communityId: 'comm_central',
+//     category: 'CROWD_SAFETY_ALERT',
+//     title: 'Crowd Bottleneck Near Main Transit Hub',
+//     description: 'High volume gathering reported near east exit gates causing physical congestion. Authorities advised to monitor movement.',
+//     reporterLabel: 'Reported by a verified community member',
+//     blurredLocation: { latitude: 40.7128, longitude: -74.006, geohash: 'dr5ru' },
+//     severity: 'HIGH',
+//     status: 'VERIFIED',
+//     createdAt: Date.now() - 1000 * 60 * 15,
+//   },
+//   {
+//     id: 'inc_102',
+//     communityId: 'comm_central',
+//     category: 'TRAFFIC_HAZARD',
+//     title: 'Severe Infrastructure Road Hazard',
+//     description: 'Debris and damaged barrier blocking two lanes on 5th Avenue. Traffic slowing down.',
+//     reporterLabel: 'Reported by a verified community member',
+//     blurredLocation: { latitude: 40.715, longitude: -74.002, geohash: 'dr5rv' },
+//     severity: 'MEDIUM',
+//     status: 'SUBMITTED',
+//     createdAt: Date.now() - 1000 * 60 * 45,
+//   },
+//   {
+//     id: 'inc_103',
+//     communityId: 'comm_central',
+//     category: 'INFRASTRUCTURE_FAILURE',
+//     title: 'Street Lighting Failure',
+//     description: 'Multiple streetlights offline along 8th Street walkway. Reduced visibility.',
+//     reporterLabel: 'Reported by a verified community member',
+//     blurredLocation: { latitude: 40.71, longitude: -74.008, geohash: 'dr5rt' },
+//     severity: 'LOW',
+//     status: 'RESOLVED',
+//     createdAt: Date.now() - 1000 * 60 * 120,
+//   },
+// ];
 
 import { IncidentFilterBar, FilterState } from '@/components/dashboard/IncidentFilterBar';
 import { IncidentFeed, filterIncidents } from '@/components/dashboard/IncidentFeed';

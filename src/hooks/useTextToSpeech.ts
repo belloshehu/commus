@@ -121,6 +121,7 @@ function getLanguageBcp47Code(lang: string): string {
     french: 'fr-FR',
     fr: 'fr-FR',
     portuguese: 'pt-PT',
+    portegues: 'pt-PT',
     pt: 'pt-PT',
     hausa: 'ha-NG',
     ha: 'ha-NG',

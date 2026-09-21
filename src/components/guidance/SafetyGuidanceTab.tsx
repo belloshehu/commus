@@ -195,15 +195,14 @@ export const SafetyGuidanceTab: React.FC<SafetyGuidanceTabProps> = ({ userSessio
         <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
           Filter Safety Guidance by Hazard Topic ({GUIDANCE_CATEGORIES.length} Categories)
         </label>
-        
+
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
           <button
             onClick={() => setSelectedCategory('all')}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 ${
-              selectedCategory === 'all'
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 ${selectedCategory === 'all'
                 ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/30 border border-cyan-400'
                 : 'bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700 hover:text-slate-200'
-            }`}
+              }`}
           >
             <Shield className="w-3.5 h-3.5" />
             All Topics ({guides.length})
@@ -217,11 +216,10 @@ export const SafetyGuidanceTab: React.FC<SafetyGuidanceTabProps> = ({ userSessio
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 border ${
-                  isSelected
+                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 border ${isSelected
                     ? `${cat.badgeColor} bg-slate-900 shadow-md`
                     : 'bg-slate-900/80 text-slate-400 border-slate-800/80 hover:border-slate-700 hover:text-slate-200'
-                }`}
+                  }`}
               >
                 {renderCategoryIcon(cat.iconName, 'w-3.5 h-3.5')}
                 {cat.shortLabel}
@@ -287,9 +285,8 @@ export const SafetyGuidanceTab: React.FC<SafetyGuidanceTabProps> = ({ userSessio
             return (
               <div
                 key={guide.id}
-                className={`rounded-2xl border ${
-                  catMeta ? catMeta.borderColor : 'border-slate-800'
-                } bg-slate-900/90 shadow-xl overflow-hidden transition-all duration-300 hover:border-cyan-500/50`}
+                className={`rounded-2xl border ${catMeta ? catMeta.borderColor : 'border-slate-800'
+                  } bg-slate-900/90 shadow-xl overflow-hidden transition-all duration-300 hover:border-cyan-500/50`}
               >
                 {/* Header */}
                 <div
@@ -331,11 +328,10 @@ export const SafetyGuidanceTab: React.FC<SafetyGuidanceTabProps> = ({ userSessio
                       <button
                         type="button"
                         onClick={(e) => handleToggleSpeech(e, guide)}
-                        className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all ${
-                          speakingGuideId === guide.id && isSpeaking
+                        className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all ${speakingGuideId === guide.id && isSpeaking
                             ? 'border-amber-500/50 bg-amber-500/10 text-amber-300 shadow-sm'
                             : 'border-slate-700/80 bg-slate-800/80 text-slate-300 hover:border-cyan-500/40 hover:text-cyan-300'
-                        }`}
+                          }`}
                         title="Turn guidance text into voice audio for accessibility"
                       >
                         {speakingGuideId === guide.id && isSpeaking ? (
@@ -410,7 +406,7 @@ export const SafetyGuidanceTab: React.FC<SafetyGuidanceTabProps> = ({ userSessio
                         <div className="rounded-xl border border-rose-500/30 bg-rose-950/20 p-4">
                           <h4 className="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5 mb-3">
                             <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                            Prohibited Hazards (DON'T)
+                            Prohibited Hazards (DON&apos;T)
                           </h4>
                           <ul className="space-y-2">
                             {guide.dontList.map((hazard, idx) => (

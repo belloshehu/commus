@@ -27,8 +27,16 @@ import {
   Radio,
   ThumbsUp,
   ThumbsDown,
+  Volume2,
+  VolumeX,
+  Pause,
+  Play,
+  Globe,
+  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+import { IncidentTranslateModal } from '@/components/incident/IncidentTranslateModal';
 
 // Mock detailed fallback incidents for local synthetic testing
 const mockDetailIncidents: Record<string, IncidentRecord> = {
@@ -113,6 +121,25 @@ export default function IncidentDetailPage({
   const [authError, setAuthError] = useState<string | null>(null);
   const [userVote, setUserVote] = useState<'UP' | 'DOWN' | null>(null);
   const [pendingVote, setPendingVote] = useState<'UP' | 'DOWN' | null>(null);
+  const [isTranslateModalOpen, setIsTranslateModalOpen] = useState(false);
+
+  // Text-to-speech accessibility hook
+  const { isSpeaking, isPaused, speak, pause, resume, stop } = useTextToSpeech({ lang: 'english' });
+
+  const handleToggleSpeech = () => {
+    if (!incident) return;
+    if (isSpeaking) {
+      if (isPaused) {
+        resume();
+      } else {
+        pause();
+      }
+    } else {
+      const danger = incident.dangerLevel || (incident.severity as any) || 'Medium';
+      const speechText = `Incident Report: ${incident.title}. Danger Level: ${danger}. Verification Status: ${incident.status}. Category: ${incident.category}. Detailed Description: ${incident.description}.`;
+      speak(speechText, 'english');
+    }
+  };
 
   const handleVote = async (voteType: 'UP' | 'DOWN') => {
     if (!incidentId) return;
@@ -269,6 +296,67 @@ export default function IncidentDetailPage({
                 <CardTitle className="text-xl font-black text-white">
                   {incident.title}
                 </CardTitle>
+
+                {/* Accessibility Voice Audio & Multilingual Translation Action Bar */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 mt-1 border-t border-slate-800/80">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleToggleSpeech}
+                      className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold shadow-sm transition-all ${
+                        isSpeaking
+                          ? 'bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold ring-2 ring-amber-400/40'
+                          : 'bg-slate-800 text-slate-200 border border-slate-700 hover:border-cyan-500/50 hover:text-cyan-300'
+                      }`}
+                      title="Listen to this incident report read aloud for accessibility"
+                    >
+                      {isSpeaking ? (
+                        <>
+                          {isPaused ? <Play className="w-4 h-4 text-slate-950" /> : <Pause className="w-4 h-4 text-slate-950" />}
+                          <span>{isPaused ? 'Resume Voice' : 'Pause Voice'}</span>
+                          <span className="flex items-center gap-0.5 ml-1">
+                            <span className="h-2 w-0.5 animate-pulse bg-slate-950" />
+                            <span className="h-3 w-0.5 animate-pulse bg-slate-950 delay-75" />
+                            <span className="h-2 w-0.5 animate-pulse bg-slate-950 delay-150" />
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 className="w-4 h-4 text-cyan-400" />
+                          <span>Listen to Report (Voice)</span>
+                        </>
+                      )}
+                    </button>
+
+                    {isSpeaking && (
+                      <button
+                        type="button"
+                        onClick={stop}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-rose-950/40 hover:text-rose-400 transition-colors"
+                        title="Stop Voice Playback"
+                      >
+                        <VolumeX className="w-4 h-4 text-rose-400" />
+                        <span>Stop</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      stop();
+                      setIsTranslateModalOpen(true);
+                    }}
+                    className="inline-flex items-center gap-2 rounded-xl border border-purple-500/40 bg-purple-500/10 px-3.5 py-2 text-xs font-semibold text-purple-300 hover:bg-purple-500/20 hover:border-purple-400 transition-all shadow-sm"
+                    title="Translate report to English, Arabic, Portuguese, French, Swahili, Yoruba, Hausa, or Igbo"
+                  >
+                    <Globe className="w-4 h-4 text-purple-400" />
+                    <span>Translate Report</span>
+                    <span className="rounded-full bg-purple-500/30 px-1.5 py-0.5 text-[10px] text-purple-200">
+                      8 Languages
+                    </span>
+                  </button>
+                </div>
               </CardHeader>
 
               <CardContent className="space-y-4">
@@ -351,7 +439,45 @@ export default function IncidentDetailPage({
             {/* Description & Voice Note */}
             <Card>
               <CardHeader>
-                <CardTitle>Detailed Incident Description</CardTitle>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <CardTitle>Detailed Incident Description</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleToggleSpeech}
+                      className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all ${
+                        isSpeaking
+                          ? 'border-amber-500/50 bg-amber-500/10 text-amber-300 shadow-sm'
+                          : 'border-slate-800 bg-slate-900 text-slate-300 hover:text-cyan-400 hover:border-cyan-500/40'
+                      }`}
+                      title="Listen to description aloud"
+                    >
+                      {isSpeaking ? (
+                        <>
+                          {isPaused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+                          <span>{isPaused ? 'Resume' : 'Pause'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>Listen (Voice)</span>
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        stop();
+                        setIsTranslateModalOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-purple-500/40 bg-purple-950/30 px-2.5 py-1 text-xs font-semibold text-purple-300 hover:bg-purple-900/40 transition-colors"
+                      title="Translate incident description"
+                    >
+                      <Globe className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Translate</span>
+                    </button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-slate-200 leading-relaxed whitespace-pre-wrap">
@@ -417,6 +543,24 @@ export default function IncidentDetailPage({
             </Card>
           </div>
         )}
+
+        {/* Multilingual Translation Modal */}
+        <IncidentTranslateModal
+          incident={
+            incident
+              ? {
+                  id: incident.id,
+                  title: incident.title,
+                  description: incident.description,
+                  category: incident.category,
+                  dangerLevel: incident.dangerLevel || (incident.severity as any) || 'MEDIUM',
+                  status: incident.status,
+                }
+              : null
+          }
+          isOpen={isTranslateModalOpen}
+          onClose={() => setIsTranslateModalOpen(false)}
+        />
       </div>
     </AppShell>
   );
